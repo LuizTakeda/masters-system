@@ -1,0 +1,18 @@
+volumes:
+  mongo_data:
+  postgres_data:
+  keycloak_data:
+
+services:
+  # ===================================================================
+  # CAMADA IOT & MENSAGERIA (BROKER MQTT + IOT AGENT)
+  # ===================================================================
+
+  broker-mqtt:
+    image: eclipse-mosquitto:2.0
+    container_name: broker-mqtt
+    hostname: broker-mqtt
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./volumes/mosquitto/config:/mosquitto/config
