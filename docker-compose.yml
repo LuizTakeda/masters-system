@@ -4,6 +4,51 @@ volumes:
   keycloak_data:
 
 services:
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo-db
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=pass
+    depends_on:
+      - mongo-db
+
+  # ===================================================================
+  # CAMADA DE BANCOS DE DADOS
+  # ===================================================================
+
+  mongo-db:
+    image: mongo:5.0
+    container_name: mongo-db
+    hostname: mongo-db
+    expose:
+      - "27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  system-postgres:
+    image: postgres:15-alpine
+    container_name: system-postgres
+    hostname: system-postgres
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=system_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   # ===================================================================
   # CAMADA IOT & MENSAGERIA (BROKER MQTT + IOT AGENT)
   # ===================================================================
@@ -16,3 +61,45 @@ services:
       - "1883:1883"
     volumes:
       - ./volumes/mosquitto/config:/mosquitto/config
+
+  json-iot-agent:
+    image: fiware/iotagent-json:3.14.0
+    container_name: json-iot-agent
+    hostname: json-iot-agent
+    expose:
+      - "4041"
+    environment:
+      - IOTA_CB_HOST=orion-ld
+      - IOTA_CB_PORT=1026
+      - IOTA_NORTH_PORT=4041
+      - IOTA_REGISTRY_TYPE=mongodb
+      - IOTA_MONGO_URI=mongodb://mongo-db:27017/iotagentjson  # <-- CORRIGIDO AQUI
+      - IOTA_HTTP_PORT=7896
+      - IOTA_PROVIDER_URL=http://json-iot-agent:4041
+      - IOTA_CB_NGSI_VERSION=ld
+      - IOTA_MQTT_HOST=broker-mqtt
+      - IOTA_MQTT_PORT=1883
+      - IOTA_AMQP_DISABLED=true
+    depends_on:
+      - mongo-db
+      - broker-mqtt
+      - orion-ld
+
+  # ===================================================================
+  # CAMADA FIWARE & CONTEXTO (ORION-LD)
+  # ===================================================================
+
+  orion-ld:
+    image: fiware/orion-ld:1.12.0
+    container_name: orion-ld
+    hostname: orion-ld
+    expose:
+      - "1026"
+    environment:
+      - ORIONLD_TROE=FALSE           # <-- CORRIGIDO AQUI (Caixa alta)
+      - ORIONLD_MONGO_HOST=mongo-db
+      - ORIONLD_MULTI_SERVICE=TRUE   # <-- CORRIGIDO AQUI (Caixa alta)
+    command: -logLevel DEBUG
+    depends_on:
+      mongo-db:
+        condition: service_healthy
