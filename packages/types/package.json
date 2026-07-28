@@ -1,13 +1,12 @@
 {
-  "name": "types",
+  "name": "@repo/types",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module"
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./zod": "./src/zod.ts",
+    "./commons": "./src/commons.ts",
+    "./endpoints/*": "./src/endpoints/*.ts"
+  }
 }

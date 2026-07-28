@@ -1,48 +1,52 @@
 # masters-system
 
+## Architecture
+
 ```mermaid
 flowchart TB
-    subgraph  Users
+    subgraph Users
         admin(("admin"))
         researcher(("researcher"))
     end
 
-    subgraph Auth
-        keyclock["keyclock"]
-
-        admin --> keyclock
-        researcher --> keyclock
-    end
-
     subgraph System
-        front-end["front-end"]
-        back-end["back-end"]
-        postgres[(postgres)]
+        subgraph Auth
+            keyclock["keyclock"]
 
-        front-end <--> back-end 
-        admin --> front-end
-        researcher --> back-end
+            admin --> keyclock
+            researcher --> keyclock
+        end
 
-        back-end --> keyclock
-        back-end --> postgres
-    end
+        subgraph Custom
+            front-end["front-end"]
+            back-end["back-end"]
+            postgres[(postgres)]
 
-    subgraph Fiware+
-        orion-ld["orion-ld"]
-        json-iot-agent["json-iot-agent"]
-        mongo-db[("mongo-db")]
-        broker-mqtt["broker-mqtt"]
+            front-end <--> back-end 
+            admin --> front-end
+            researcher --> back-end
 
-        orion-ld <--> mongo-db
-        orion-ld --"schemas"--> back-end
-        back-end --"CRUD"--> orion-ld
+            back-end --> keyclock
+            back-end --> postgres
+        end
 
-        json-iot-agent <--> mongo-db
-        json-iot-agent --> orion-ld
-        json-iot-agent <--> broker-mqtt
-        back-end -- "CRUD" --> json-iot-agent
+        subgraph Fiware+
+            orion-ld["orion-ld"]
+            json-iot-agent["json-iot-agent"]
+            mongo-db[("mongo-db")]
+            broker-mqtt["broker-mqtt"]
 
-        broker-mqtt -- "device auth"--> back-end
+            orion-ld <--> mongo-db
+            orion-ld --"schemas"--> back-end
+            back-end --"CRUD"--> orion-ld
+
+            json-iot-agent <--> mongo-db
+            json-iot-agent --> orion-ld
+            json-iot-agent <--> broker-mqtt
+            back-end -- "CRUD" --> json-iot-agent
+
+            broker-mqtt -- "device auth"--> back-end
+        end
     end
 
     subgraph Devices
