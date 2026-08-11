@@ -1,12 +1,37 @@
-volumes:
-  mongo_data:
-  postgres_data:
-  keycloak_data:
-
 services:
+  # ===================================================================
+  # Infrastructure
+  # ===================================================================
+
+  nginx:
+    image: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./volumes/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./volumes/nginx/certs:/etc/nginx/certs:ro
+    network_mode: "host"
+
+  # ===================================================================
+  # Fiware
+  # ===================================================================
+
+  mongo-db:
+    image: mongo:5.0
+    hostname: mongo-db
+    expose:
+      - "27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   mongo-express:
     image: mongo-express:latest
-    container_name: mongo-express
     ports:
       - "8081:8081"
     environment:
@@ -18,88 +43,122 @@ services:
     depends_on:
       - mongo-db
 
-  # ===================================================================
-  # CAMADA DE BANCOS DE DADOS
-  # ===================================================================
-
-  mongo-db:
-    image: mongo:5.0
-    container_name: mongo-db
-    hostname: mongo-db
-    expose:
-      - "27017"
-    volumes:
-      - mongo_data:/data/db
-    healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  system-postgres:
-    image: postgres:15-alpine
-    container_name: system-postgres
-    hostname: system-postgres
-    expose:
-      - "5432"
+  orion-ld:
+    image: fiware/orion-ld:1.12.0
+    hostname: orion-ld
+    ports:
+      - "1026:1026"
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=123456
-      - POSTGRES_DB=system_db
+      - ORIONLD_TROE=FALSE
+      - ORIONLD_MONGO_HOST=mongo-db
+      - ORIONLD_MULTI_SERVICE=TRUE
+    command: -logLevel DEBUG
+    depends_on:
+      mongo-db:
+        condition: service_healthy
+
+  # TODO
+  # [] - Add Quantumleap
+  # [] - Add InfluxDB
+
+  # ===================================================================
+  # System
+  # ===================================================================
+
+  main-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+
+      KEYCLOAK_DB: keycloak_db
+      KEYCLOAK_USER: keycloak
+      KEYCLOAK_PASSWORD: 123
+
+      BACKEND_DB: backend_db
+      BACKEND_USER: backend
+      BACKEND_PASSWORD: 123
+    ports:
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
+      - ./volumes/postgresql/init.sh:/docker-entrypoint-initdb.d/init.sh
 
-  # ===================================================================
-  # CAMADA IOT & MENSAGERIA (BROKER MQTT + IOT AGENT)
-  # ===================================================================
-
-  broker-mqtt:
-    image: eclipse-mosquitto:2.0
-    container_name: broker-mqtt
-    hostname: broker-mqtt
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: password123
+    ports:
+      - "8082:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - main-db
+  mqtt-broker:
+    image: eclipse-mosquitto:2.1.2-alpine
+    restart: unless-stopped
     ports:
       - "1883:1883"
+    environment:
+      MOSQUITTO_DYNSEC_PASSWORD: admin123456789
     volumes:
-      - ./volumes/mosquitto/config:/mosquitto/config
+      - ./volumes/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
 
   json-iot-agent:
     image: fiware/iotagent-json:3.14.0
-    container_name: json-iot-agent
     hostname: json-iot-agent
-    expose:
-      - "4041"
+    ports:
+      - "4041:4041"
     environment:
       - IOTA_CB_HOST=orion-ld
       - IOTA_CB_PORT=1026
       - IOTA_NORTH_PORT=4041
       - IOTA_REGISTRY_TYPE=mongodb
-      - IOTA_MONGO_URI=mongodb://mongo-db:27017/iotagentjson  # <-- CORRIGIDO AQUI
+      - IOTA_MONGO_URI=mongodb://mongo-db:27017/iotagentjson
       - IOTA_HTTP_PORT=7896
       - IOTA_PROVIDER_URL=http://json-iot-agent:4041
       - IOTA_CB_NGSI_VERSION=ld
-      - IOTA_MQTT_HOST=broker-mqtt
+      - IOTA_MQTT_HOST=mqtt-broker
       - IOTA_MQTT_PORT=1883
       - IOTA_AMQP_DISABLED=true
     depends_on:
       - mongo-db
-      - broker-mqtt
+      - mqtt-broker
       - orion-ld
 
-  # ===================================================================
-  # CAMADA FIWARE & CONTEXTO (ORION-LD)
-  # ===================================================================
+  ##################################################
+  # Auth
+  ##################################################
 
-  orion-ld:
-    image: fiware/orion-ld:1.12.0
-    container_name: orion-ld
-    hostname: orion-ld
-    expose:
-      - "1026"
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.0
     environment:
-      - ORIONLD_TROE=FALSE           # <-- CORRIGIDO AQUI (Caixa alta)
-      - ORIONLD_MONGO_HOST=mongo-db
-      - ORIONLD_MULTI_SERVICE=TRUE   # <-- CORRIGIDO AQUI (Caixa alta)
-    command: -logLevel DEBUG
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+      # Conexão com o PostgreSQL
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://main-db:5432/keycloak_db
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: 123
+
+      # Configurações para funcionar atrás de Proxy HTTPS
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: https://auth.system.local
+    command: start-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
     depends_on:
-      mongo-db:
-        condition: service_healthy
+      - main-db
+
+volumes:
+  mongo_data:
+  postgres_data:
+  pgadmin_data:
+  keycloak_data:
+  mosquitto_data:

@@ -1,7 +1,7 @@
 import "dotenv/config"
 import fp from "fastify-plugin"
 import { PrismaPg } from "@prisma/adapter-pg"
-import { PrismaClient } from "@/generated/prisma/client.js"
+import { PrismaClient } from "@generated/prisma/client.js"
 import { Pool } from "pg";
 
 declare module 'fastify' {

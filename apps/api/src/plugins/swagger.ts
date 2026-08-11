@@ -8,8 +8,8 @@ export default fp(async (fastify) => {
     openapi: {
       openapi: '3.0.0',
       info: {
-        title: 'Agricultural Dashboard Swagger',
-        description: 'Agricultural Dashboard API',
+        title: 'System Swagger',
+        description: 'System API',
         version: '0.1.0'
       },
       servers: [
