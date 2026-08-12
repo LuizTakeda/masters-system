@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router'
 import './index.css'
 import RootPage from './pages/(root)/page'
 import DashboardPage from './pages/dashboard/page'
+import DashboardLayout from './pages/dashboard/layout'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -11,7 +12,7 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route index element={<RootPage />} />
-        <Route path="dashboard">
+        <Route path="dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardPage />} />
         </Route>
       </Routes>

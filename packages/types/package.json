@@ -1,12 +1,13 @@
 {
   "name": "@repo/types",
   "version": "1.0.0",
-  "description": "",
   "private": true,
   "type": "module",
   "exports": {
-    "./zod": "./src/zod.ts",
     "./commons": "./src/commons.ts",
     "./endpoints/*": "./src/endpoints/*.ts"
+  },
+  "peerDependencies": {
+    "zod": "^4.4.3"
   }
 }
