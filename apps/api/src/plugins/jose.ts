@@ -14,9 +14,9 @@ declare module "fastify" {
 
 export interface KeycloakUserPayload extends JWTPayload {
   sub: string;
-  name?: string;
-  preferred_username?: string;
-  email?: string;
+  name: string;
+  preferred_username: string;
+  email: string;
   realm_access?: {
     roles: string[];
   };

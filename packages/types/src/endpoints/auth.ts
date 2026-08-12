@@ -1,6 +1,16 @@
 import { z } from "zod"
 
 //**************************************************
+// GET /auth
+//**************************************************
+
+export const AuthGetQuerySchema = z.object({
+  redirectTo: z.url("Iinvalid URL").optional().describe("URL to the login redirect")
+});
+
+export type AuthGetQueryType = z.infer<typeof AuthGetQuerySchema>
+
+//**************************************************
 // GET /auth/me
 //**************************************************
 
@@ -9,7 +19,8 @@ export const AuthMeGetResponseSchema = z.object({
   name: z.string(),
   username: z.string(),
   email: z.email(),
-  roles: z.array(z.string())
-})
+  roles: z.array(z.string()),
+  groups: z.array(z.string())
+});
 
 export type AuthMeGetResponseType = z.infer<typeof AuthMeGetResponseSchema>
