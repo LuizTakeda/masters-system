@@ -22,12 +22,4 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
 
 EOSQL
 
-echo "[db-init.sh] Setting up backend database..."
-psql -v ON_ERROR_STOP=1 --username "$BACKEND_USER" --dbname "$BACKEND_DB" <<-EOSQL
-
-    -- Enable time-series extension on the backend database
-    CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
-
-EOSQL
-
 echo "[db-init.sh] Initialization complete!"

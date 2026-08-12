@@ -8,6 +8,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod'
 //import prismaPlugin from "@plugins/prisma.js"
 import fastifySensible from "@fastify/sensible"
+import envPlugin from "@plugins/env.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -25,6 +26,7 @@ app.setSerializerCompiler(serializerCompiler);
 // Plugins
 //**************************************************
 
+await app.register(envPlugin);
 await app.register(fastifySensible);
 await app.register(cors);
 //await app.register(prismaPlugin);

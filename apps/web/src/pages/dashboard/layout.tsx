@@ -1,14 +1,14 @@
 import { Outlet } from "react-router";
+import { SidebarProvider } from "../../components/ui/sidebar";
+import AppSideBar from "./components/app-side-bar";
 
-export default function DashboardLayout(){
+export default function DashboardLayout() {
   return (
-    <div>
+    <SidebarProvider>
+      <AppSideBar />
       <div>
-        SideBar
+        <Outlet />
       </div>
-      <div>
-        <Outlet/>        
-      </div>
-    </div>
+    </SidebarProvider>
   );
 }
