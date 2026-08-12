@@ -2,7 +2,7 @@ import { type FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { type FastifyRequest, type FastifyReply } from "fastify";
 import { AuthGetQuerySchema, AuthMeGetResponseSchema } from "@repo/types/endpoints/auth";
 import z from "zod";
-import { ResponseMessageSchema } from "@repo/types/commons";
+import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
 
 const cookieOptions = {
   httpOnly: true,
@@ -96,7 +96,7 @@ const authRoutes: FastifyPluginAsyncZod = async (fastify) => {
       response: {
         200: ResponseMessageSchema,
         302: z.null().describe("Redirects to the originally requested URL"),
-        401: ResponseMessageSchema,
+        401: HttpErrorSchema,
       }
     }
   }, async (request: FastifyRequest, reply: FastifyReply) => {
@@ -138,7 +138,7 @@ const authRoutes: FastifyPluginAsyncZod = async (fastify) => {
         tags: ["Auth"],
         response: {
           200: ResponseMessageSchema,
-          401: ResponseMessageSchema,
+          401: HttpErrorSchema,
         }
       }
     },
@@ -184,7 +184,7 @@ const authRoutes: FastifyPluginAsyncZod = async (fastify) => {
         tags: ["Auth"],
         response: {
           200: AuthMeGetResponseSchema,
-          401: ResponseMessageSchema,
+          401: HttpErrorSchema,
         }
       }
     },
