@@ -1,9 +1,11 @@
+import PageHeader from "./components/page-header";
+
 export default function DashboardPage(){
   return (
     <main>
-      <h1>
+      <PageHeader>
         Pagina principal
-      </h1>
+      </PageHeader>
     </main>
   );
 }

@@ -1,4 +1,16 @@
 import type { HttpErrorType } from "@repo/types/commons";
+import { z } from "zod";
+
+//**************************************************
+// Globals
+//**************************************************
+
+let isRefreshing = false;
+let refreshPromise: Promise<boolean> | null = null;
+
+//**************************************************
+// Private Functions
+//**************************************************
 
 function AuthLogin(): Promise<never> {
   const { origin, pathname, search } = window.location;
@@ -18,10 +30,17 @@ async function AuthRefresh(): Promise<boolean> {
   }
 }
 
-let isRefreshing = false;
-let refreshPromise: Promise<boolean> | null = null;
+//**************************************************
+// Public Functions
+//**************************************************
 
-export async function apiFetch<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
+interface ApiFetchOptions<TSchema extends z.ZodType> extends RequestInit {
+  responseSchema?: TSchema;
+}
+
+export async function apiFetch<TSchema extends z.ZodType, TData = z.infer<TSchema>>(input: RequestInfo | URL, options?: ApiFetchOptions<TSchema>): Promise<TData> {
+  const { responseSchema, ...init } = options || {};
+
   const doRequest = async () => {
     const response = await fetch(input, init);
 
@@ -38,7 +57,21 @@ export async function apiFetch<T>(input: RequestInfo | URL, init?: RequestInit):
       throw errorPayload;
     }
 
-    return data as T;
+    if (responseSchema) {
+      const validation = responseSchema.safeParse(data);
+
+      if (!validation.success) {
+        throw {
+          statusCode: 500,
+          error: "Contract Error",
+          message: "The server response is incompatible with the expected contract.",
+        } as HttpErrorType;
+      }
+
+      return validation.data as TData;
+    }
+
+    return data as TData;
   };
 
   try {

@@ -7,11 +7,13 @@ type Props = {
 
 export default function PageHeader(props: Props) {
   return (
-    <div className="flex items-center w-full border-b-2 px-2 py-2 gap-1">
-      <SidebarTrigger />
-      <h1 className="text-2xl font-medium">
-        {props.children}
-      </h1>
+    <div className="bg-sidebar pt-3 pb-0.5">
+      <div className="flex items-center px-2 py-2 gap-1 rounded-tl-3xl bg-secondary">
+        <SidebarTrigger />
+        <h1 className="text-2xl font-medium">
+          {props.children}
+        </h1>
+      </div>
     </div>
   );
 }

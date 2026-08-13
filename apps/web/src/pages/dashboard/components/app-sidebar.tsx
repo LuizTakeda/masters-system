@@ -22,8 +22,8 @@ export function AppSidebar() {
   // 1. Estado de Carregamento (Skeleton Moderno)
   if (isLoading) {
     return (
-      <Sidebar collapsible="icon" className="border-r border-border/50 bg-background">
-        <SidebarHeader className="h-[72px] flex items-center justify-center border-b border-border/50">
+      <Sidebar collapsible="icon" className="bg-sidebar border-0 shadow-none outline-0">
+        <SidebarHeader className="h-[72px] flex items-center justify-center ">
           <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
         </SidebarHeader>
         <SidebarContent className="p-2 space-y-4">
