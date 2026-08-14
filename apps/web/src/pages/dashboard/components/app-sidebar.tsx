@@ -4,6 +4,7 @@ import { useMe } from "../../../hooks/use-me";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
 
 export function AppSidebar() {
   const { isLoading, isError, user } = useMe();
@@ -40,12 +41,14 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenuItem>
-              <SidebarMenuButton>
-                <Home />
-                <span>Home</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <Link to="/dashboard">
+              <SidebarMenuItem>
+                <SidebarMenuButton>
+                  <Home />
+                  <span>Home</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </Link>
           </SidebarGroupContent>
         </SidebarGroup>
         {currentContext === "system-admin" && <AdminSidebarGroup />}
@@ -197,12 +200,14 @@ function AdminSidebarGroup() {
     <SidebarGroup>
       <SidebarGroupLabel>Admin</SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenuButton>
-          <ServerIcon />
-          <span>
-            MQTT Broker
-          </span>
-        </SidebarMenuButton>
+        <Link to="/dashboard/admin/mqtt-broker" >
+          <SidebarMenuButton>
+            <ServerIcon />
+            <span>
+              MQTT Broker
+            </span>
+          </SidebarMenuButton>
+        </Link>
         <SidebarMenuButton>
           <RadioReceiver />
           <span>
