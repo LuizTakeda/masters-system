@@ -1,63 +1,42 @@
-import { Cpu, Wifi, EllipsisVerticalIcon, LogOutIcon, Home, ServerIcon, RadioReceiver } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  useSidebar,
-} from "../../../components/ui/sidebar";
+import { Cpu, Wifi, EllipsisVerticalIcon, LogOutIcon, Home, ServerIcon, RadioReceiver, ChevronsUpDown, Plus } from "lucide-react";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "../../../components/ui/sidebar";
 import { useMe } from "../../../hooks/use-me";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
+import React, { useEffect, useMemo, useState } from "react";
 
 export function AppSidebar() {
   const { isLoading, isError, user } = useMe();
 
-  // 1. Estado de Carregamento (Skeleton Moderno)
-  if (isLoading) {
-    return (
-      <Sidebar collapsible="icon" className="bg-sidebar border-0 shadow-none outline-0">
-        <SidebarHeader className="h-[72px] flex items-center justify-center ">
-          <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
-        </SidebarHeader>
-        <SidebarContent className="p-2 space-y-4">
-          <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
-          <div className="space-y-2">
-            <div className="h-4 w-20 animate-pulse rounded bg-muted/60" />
-            <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
-            <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
-          </div>
-        </SidebarContent>
-      </Sidebar>
-    );
-  }
+  const [selectedContext, setSelectedContext] = useState<string | null>(null);
 
-  // 2. Estado de Erro ou Não Autenticado
-  if (isError || !user) {
-    return (
-      <Sidebar collapsible="icon" className="border-r border-destructive/20 bg-background">
-        <SidebarHeader className="h-[72px] flex items-center justify-center border-b border-destructive/20">
-          <Cpu className="h-8 w-8 text-destructive opacity-50" />
-        </SidebarHeader>
-        <SidebarContent className="p-4 text-center flex flex-col items-center justify-center gap-2">
-          <Wifi className="h-10 w-10 text-muted-foreground opacity-30" />
-          <p className="text-sm font-medium text-destructive">Falha na conexão</p>
-          <p className="text-xs text-muted-foreground">Não foi possível carregar o perfil IoT.</p>
-        </SidebarContent>
-      </Sidebar>
-    );
-  }
+  const availableContexts = useMemo(() => {
+    if (!user) return [];
 
-  const isAdmin = user.roles.includes("admin");
+    const contexts: string[] = [];
+
+    if (user.roles.includes("system-admin")) {
+      contexts.push("system-admin");
+    }
+
+    const projects = user.groups.filter((str) => str.includes("project"));
+
+    contexts.push(...projects);
+
+    return contexts;
+  }, [user]);
+
+  const currentContext = selectedContext ?? availableContexts.at(0) ?? null;
+
+  if (isLoading || isError || !user) {
+    return <LoadingAppSideBar />;
+  }
 
   return (
     <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <ContextSwitcher setContext={setSelectedContext} currentContext={currentContext} contexts={availableContexts} />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -69,30 +48,30 @@ export function AppSidebar() {
             </SidebarMenuItem>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {isAdmin && <SidebarGroup>
-          <SidebarGroupLabel>Admin</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenuButton>
-              <ServerIcon />
-              <span>
-                MQTT Broker
-              </span>
-            </SidebarMenuButton>
-            <SidebarMenuButton>
-              <RadioReceiver />
-              <span>
-                Devices
-              </span>
-            </SidebarMenuButton>
-          </SidebarGroupContent>
-        </SidebarGroup>}
-
+        {currentContext === "system-admin" && <AdminSidebarGroup />}
+        {currentContext && currentContext !== "system-admin" && <ProjectSidebarGroup project={currentContext} />}
       </SidebarContent>
-
       <SidebarFooter >
         <NavUser name={user.name} email={user.email} />
       </SidebarFooter>
+    </Sidebar>
+  );
+}
+
+function LoadingAppSideBar() {
+  return (
+    <Sidebar collapsible="icon" className="bg-sidebar border-0 shadow-none outline-0">
+      <SidebarHeader className="h-18 flex items-center justify-center ">
+        <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
+      </SidebarHeader>
+      <SidebarContent className="p-2 space-y-4">
+        <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+        <div className="space-y-2">
+          <div className="h-4 w-20 animate-pulse rounded bg-muted/60" />
+          <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
+          <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
+        </div>
+      </SidebarContent>
     </Sidebar>
   );
 }
@@ -152,4 +131,93 @@ function NavUser(props: { name: string, email: string }) {
       </SidebarMenuItem>
     </SidebarMenu>
   )
+}
+
+export function ContextSwitcher({
+  contexts,
+  currentContext,
+  setContext
+}: {
+  currentContext: string | null,
+  contexts: string[],
+  setContext: (context: string) => void
+}) {
+
+  if (currentContext === null) {
+    return null;
+  }
+
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              >
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate text-xs">Context</span>
+                  <span className="truncate font-medium">{currentContext}</span>
+                </div>
+                <ChevronsUpDown className="ml-auto" />
+              </SidebarMenuButton>
+            }
+          />
+          <DropdownMenuContent
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            align="start"
+            side="bottom"
+            sideOffset={4}
+          >
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                Contexts
+              </DropdownMenuLabel>
+              {contexts.map((context) => (
+                <DropdownMenuItem
+                  key={context}
+                  onClick={() => setContext(context)}
+                  className="gap-2 p-2"
+                >
+                  {context}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
+}
+
+function AdminSidebarGroup() {
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>Admin</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenuButton>
+          <ServerIcon />
+          <span>
+            MQTT Broker
+          </span>
+        </SidebarMenuButton>
+        <SidebarMenuButton>
+          <RadioReceiver />
+          <span>
+            Devices
+          </span>
+        </SidebarMenuButton>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
+
+function ProjectSidebarGroup(props: { project: string }) {
+  return (
+    <SidebarGroup>
+
+    </SidebarGroup>
+  );
 }
