@@ -11,7 +11,10 @@ const envSchema = z.object({
     .transform((val) => val.split(",").map((origin) => origin.trim())),
   KEYCLOAK_CLIENT_ID: z.string(),
   KEYCLOAK_CLIENT_SECRET: z.string(),
-  KEYCLOAK_REALM: z.string()
+  KEYCLOAK_REALM: z.string(),
+  MQTT_BROKER_URL: z.string(),
+  MQTT_BROKER_USERNAME: z.string(),
+  MQTT_BROKER_PASSWORD: z.string(),
 });
 
 type Env = z.infer<typeof envSchema>;
