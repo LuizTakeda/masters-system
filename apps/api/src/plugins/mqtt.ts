@@ -1,12 +1,37 @@
 import fp from "fastify-plugin"
 import { EventEmitter } from "events";
 import mqtt from "mqtt"
+import z, { boolean } from "zod";
+
+//##################################################
+
+// Dynamic Security Commands
+
+const DSCommandListRolesSchema = z.object({
+  command: z.literal("listRoles"),
+  verbose: z.boolean().optional().default(false),
+  count: z.number().min(-1).max(50),
+  offset: z.number().nonnegative()
+})
+
+// DS = Dynamic Security
+const DSCommandsSchema = z.object({
+  commands: z.array(
+    z.discriminatedUnion("command", [
+      DSCommandListRolesSchema
+    ])
+  )
+});
+
+type DSCommandsType = z.infer<typeof DSCommandsSchema>;
+
+//##################################################
 
 declare module 'fastify' {
   interface FastifyInstance {
     mqttClient: mqtt.MqttClient,
     mqttEvents: EventEmitter,
-    mqttSendCommand: (payload: any) => Promise<any>,
+    mqttSendCommands: (payload: DSCommandsType) => Promise<any>,
   }
 }
 
@@ -110,10 +135,17 @@ export default fp(async (fastify) => {
     });
   };
 
-  const mqttSendCommand = (payload: any): Promise<any> => {
+  const mqttSendCommands = (payload: DSCommandsType): Promise<any> => {
     return new Promise((resolve, reject) => {
-      commandQueue.push({ payload, resolve, reject });
-      processQueue(); // Aciona a máquina
+      try {
+        const validPayload = DSCommandsSchema.parse(payload);
+
+        commandQueue.push({ payload: validPayload, resolve, reject });
+
+        processQueue();
+      } catch (error) {
+        reject(error);
+      }
     });
   };
   // =========================================
@@ -121,7 +153,7 @@ export default fp(async (fastify) => {
 
   fastify.decorate('mqttClient', mqttClient);
   fastify.decorate('mqttEvents', mqttEvents);
-  fastify.decorate('mqttSendCommand', mqttSendCommand);
+  fastify.decorate('mqttSendCommands', mqttSendCommands);
 
   fastify.addHook('onClose', (instance, done) => {
     instance.mqttClient.end();
