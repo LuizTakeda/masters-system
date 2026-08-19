@@ -5,6 +5,7 @@ import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 declare module "fastify" {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    authenticateAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
   interface FastifyRequest {
     user?: KeycloakUserPayload;
@@ -48,4 +49,26 @@ export default fp(async (fastify: FastifyInstance) => {
       }
     }
   );
+
+  fastify.decorate(
+    "authenticateAdmin",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        await fastify.authenticate(request, reply);
+
+        if (reply.sent) {
+          return;
+        }
+
+        const roles = request.user?.realm_access?.roles || [];
+
+        if (!roles.includes("system-admin")) {
+          return reply.forbidden();
+        }
+
+      } catch (err: any) {
+        return reply.unauthorized();
+      }
+    }
+  )
 });

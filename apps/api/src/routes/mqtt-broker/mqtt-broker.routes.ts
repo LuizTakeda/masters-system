@@ -1,24 +1,57 @@
+import type { FastifyReply } from "fastify";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
+// TODO
+// Get Credential list
+// Get credentials role and permissons
+// Create Credentials
+// ASsing role to a credential
+
+// Get Roles
+// Get roles permissons and credentials that use this the role
+// Create Role
+// Create permissions
+
 const mqttBrokerRoutes: FastifyPluginAsyncZod = async (fastify) => {
-  fastify.get("/client", async (request, reply) => {
+  const runSigleCommand = async (commandPayload: any, reply: FastifyReply) => {
     try {
-      const comando = {
-        commands: [{ command: "listClients" }]
-      };
+      const response = await fastify.mqttSendCommand({ commands: [commandPayload] });
 
-      // A mágica acontece aqui: 
-      // Se 10 usuários baterem nessa rota ao mesmo tempo, 
-      // o mqttSendCommand vai organizá-los em fila automaticamente.
-      const respostaMosquitto = await fastify.mqttSendCommand(comando);
+      const result = response.responses[0];
 
-      return reply.send(respostaMosquitto);
+      if (result.error && result.error !== "success") {
+        return reply.status(400).send({ error: result.error });
+      }
 
+      return reply.send(result.data || { success: true });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.status(500).send({ error: "Falha na comunicação com o broker" });
+      return reply.internalServerError();
     }
-  });
+  };
+
+  fastify.get("/credential",
+    {
+      onRequest: [fastify.authenticateAdmin]
+    },
+    async (request, reply) => {
+      try {
+        const { responses } = await fastify.mqttSendCommand({
+          commands: [{ command: "listClients" }]
+        });
+
+        if (!responses) {
+          return reply.internalServerError();
+        }
+
+        const { data } = responses.at(0);
+
+        return reply.send(data);
+
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.internalServerError();
+      }
+    });
 }
 
 export default mqttBrokerRoutes;
