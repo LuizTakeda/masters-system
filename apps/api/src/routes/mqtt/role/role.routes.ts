@@ -7,9 +7,9 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
     {
       onRequest: [fastify.authenticateAdmin],
       schema: {
+        tags: ["MQTT Roles", "MQTT"],
         summary: "Lists MQTT broker roles",
         description: "Retrieves a paginated list of all roles configured in Mosquitto's Dynamic Security. Requires administrator privileges.",
-        tags: ["MQTT Roles", "MQTT"],
         security: [{ bearerAuth: [] }],
         querystring: GetRolesQuerySchema,
         response: {
@@ -38,6 +38,8 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
       onRequest: [fastify.authenticateAdmin],
       schema: {
         tags: ["MQTT Roles", "MQTT"],
+        summary: "Lists MQTT role names",
+        description: "Retrieves a paginated list of role names configured in Mosquitto's Dynamic Security. Unlike the detailed list, this endpoint returns only the role identifiers. Requires administrator privileges.",
         security: [{ bearerAuth: [] }],
         querystring: GetRoleNamesQuerySchema,
         response: {
