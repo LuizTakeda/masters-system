@@ -11,15 +11,19 @@ import fastifySensible from "@fastify/sensible"
 import envPlugin from "@plugins/env.js"
 import oauth2Plugin from "@plugins/oauth2.js"
 import josePlugin from "@plugins/jose.js"
-import mqttPlugin from "@plugins/mqtt.js"
+import mqttPlugin from "@/plugins/mqtt/index.js"
+import pino from 'pino'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
+
 const app = fastify({
-  logger: true
+  logger: {
+    name: "app"
+  }
 }).withTypeProvider<ZodTypeProvider>();
 
 app.setValidatorCompiler(validatorCompiler);
