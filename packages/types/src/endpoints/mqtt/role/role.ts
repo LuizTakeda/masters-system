@@ -32,3 +32,25 @@ export const GetRolesResponseSchema = z.object({
 });
 
 export type GetRolesResponseType = z.infer<typeof GetRolesResponseSchema>;
+
+//##################################################
+// Get Role Names 
+//##################################################
+
+// ### Query ###
+
+export const GetRoleNamesQuerySchema = z.object({
+  count: z.coerce.number().min(-1).optional().default(-1).describe("Maximum number of roles to return (-1 for all)"),
+  offset: z.coerce.number().nonnegative().optional().default(0).describe("Starting point for pagination"),
+});
+
+export type GetRoleNamesQueryType = z.infer<typeof GetRolesQuerySchema>;
+
+// ### Reponse ###
+
+export const GetRoleNamesResponseSchema = z.object({
+  totalCount: z.number().int().nonnegative(),
+  roles: z.array(z.string()).optional().default([])
+}).optional()
+
+export type GetRoleNamesResponseType = z.infer<typeof GetRolesResponseSchema>;

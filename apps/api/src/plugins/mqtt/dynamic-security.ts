@@ -1,5 +1,5 @@
 import mqtt from "mqtt"
-import { ListRolesResponseVerboseSchema, ListRolesSchema, type ListRolesType } from "./role.schemas.js"
+import { ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, type ListRolesType } from "./role.schemas.js"
 import z from "zod"
 import type { EventEmitter } from "events"
 
@@ -131,14 +131,18 @@ async function createCommandsQueue(client: mqtt.MqttClient, messageEventStream: 
 export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageEventStream: EventEmitter) {
   const { sendCommands } = await createCommandsQueue(client, messageEventStream);
 
-  const listRoles = async (payload: Omit<ListRolesType, "command">) => {
+  const listRoles = async (payload: Omit<ListRolesType, "command" | "verbose">) => {
     const response = await sendCommands({
-      commands: [
-        {
-          command: "listRoles",
-          ...payload
-        }
-      ]
+      commands: [{ command: "listRoles", verbose: false, ...payload }]
+    });
+
+    return ListRolesResponseSchema.parse(response);
+  }
+
+  // Retorna com todos os detalhes
+  const listRolesVerbose = async (payload: Omit<ListRolesType, "command" | "verbose">) => {
+    const response = await sendCommands({
+      commands: [{ command: "listRoles", verbose: true, ...payload }]
     });
 
     return ListRolesResponseVerboseSchema.parse(response);
@@ -146,6 +150,7 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
 
   return {
     listRoles,
+    listRolesVerbose
   }
 }
 

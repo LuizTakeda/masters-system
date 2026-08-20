@@ -12,6 +12,22 @@ export const ListRolesSchema = z.object({
 export type ListRolesType = z.infer<typeof ListRolesSchema>;
 
 // Verbose Response 
+export const ListRolesResponseSchema = z.object({
+  responses: z.array(
+    z.object({
+      command: z.literal("listRoles"),
+      error: z.string().optional(),
+      data: z.object({
+        totalCount: z.number().int().nonnegative(),
+        roles: z.array(z.string()).optional().default([])
+      }).optional()
+    })
+  )
+});
+
+export type ListRolesResponseType = z.infer<typeof ListRolesResponseSchema>;
+
+// Verbose Response 
 export const ListRolesResponseVerboseSchema = z.object({
   responses: z.array(
     z.object({
