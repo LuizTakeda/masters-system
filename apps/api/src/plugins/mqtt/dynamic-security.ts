@@ -1,5 +1,5 @@
 import mqtt from "mqtt"
-import { ListRolesSchema, type ListRolesType } from "./role.schemas.js"
+import { ListRolesResponseVerboseSchema, ListRolesSchema, type ListRolesType } from "./role.schemas.js"
 import z from "zod"
 import type { EventEmitter } from "events"
 
@@ -32,9 +32,9 @@ type CommandsQueueItem = {
  */
 async function createCommandsQueue(client: mqtt.MqttClient, messageEventStream: EventEmitter) {
   await new Promise((resolve, reject) => {
-    client.subscribe(CMD_TOPIC, (error) => {
+    client.subscribe(RESP_TOPIC, (error) => {
       if (error) {
-        reject(new Error(`Fail to subscribe: ${CMD_TOPIC}`));
+        reject(new Error(`Fail to subscribe: ${RESP_TOPIC}`));
         return;
       }
 
@@ -141,7 +141,7 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
       ]
     });
 
-    return response;
+    return ListRolesResponseVerboseSchema.parse(response);
   }
 
   return {
