@@ -1,5 +1,5 @@
 import mqtt from "mqtt"
-import { CreateRoleResponseSchema, CreateRoleSchema, DeleteRoleResponseSchema, DeleteRoleSchema, GetRoleResponseSchema, GetRoleSchema, ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, type CreateRoleType, type DeleteRoleType, type GetRoleType, type ListRolesType } from "./role.schemas.js"
+import { AddRoleACLResponseSchema, AddRoleACLSchema, CreateRoleResponseSchema, CreateRoleSchema, DeleteRoleResponseSchema, DeleteRoleSchema, GetRoleResponseSchema, GetRoleSchema, ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, type AddRoleACLType, type CreateRoleType, type DeleteRoleType, type GetRoleType, type ListRolesType } from "./role.schemas.js"
 import z from "zod"
 import type { EventEmitter } from "events"
 
@@ -12,7 +12,8 @@ const DSCommandsSchema = z.object({
       ListRolesSchema,
       GetRoleSchema,
       CreateRoleSchema,
-      DeleteRoleSchema
+      DeleteRoleSchema,
+      AddRoleACLSchema
     ])
   )
 });
@@ -174,13 +175,22 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     return DeleteRoleResponseSchema.parse(response);
   }
 
+  const addRoleACL = async (payload: Omit<AddRoleACLType, "command">) => {
+    const response = await sendCommands({
+      commands: [{ command: "addRoleACL", ...payload }]
+    });
+
+    return AddRoleACLResponseSchema.parse(response);
+  }
+
   return {
     // ### Roles ###
     listRoles,
     listRolesVerbose,
     getRole,
     createRole,
-    deleteRole
+    deleteRole,
+    addRoleACL
   }
 }
 

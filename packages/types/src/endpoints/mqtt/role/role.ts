@@ -114,3 +114,31 @@ export const DeleteRoleParamsSchema = z.object({
 });
 
 export type DeleteRoleParamsType = z.infer<typeof DeleteRoleParamsSchema>;
+
+//##################################################
+// Add Role ACL 
+//##################################################
+
+// ### Params ###
+
+export const AddRoleAclParamsSchema = z.object({
+  name: z.string().min(1).max(100)
+});
+
+export type AddRoleAclParamsType = z.infer<typeof GetRoleParamsSchema>;
+
+// ### Body ###
+
+export const AddRoleAclBodySchema = z.object({
+  acltype: z.enum([
+    "publishClientSend",
+    "publishClientReceive",
+    "subscribePattern",
+    "unsubscribePattern"
+  ]).describe("Permission type"),
+  topic: z.string().min(1).describe("MQTT topic filter"),
+  priority: z.number().describe("Rule priority (higher wins)"),
+  allow: z.boolean().describe("Allow or deny access"),
+});
+
+export type AddRoleAclBodyType = z.infer<typeof AddRoleAclBodySchema>;

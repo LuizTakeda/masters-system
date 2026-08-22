@@ -1,5 +1,5 @@
 import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
-import { CreateRoleBodySchema, DeleteRoleParamsSchema, GetRoleNamesQuerySchema, GetRoleNamesResponseSchema, GetRoleParamsSchema, GetRoleResponseSchema, GetRolesQuerySchema, GetRolesResponseSchema } from "@repo/types/endpoints/mqtt/role/role";
+import { AddRoleAclBodySchema, AddRoleAclParamsSchema, CreateRoleBodySchema, DeleteRoleParamsSchema, GetRoleNamesQuerySchema, GetRoleNamesResponseSchema, GetRoleParamsSchema, GetRoleResponseSchema, GetRolesQuerySchema, GetRolesResponseSchema } from "@repo/types/endpoints/mqtt/role/role";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
@@ -187,6 +187,51 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
       return { message: "Role deleted" };
     }
   )
+
+  fastify.post("/:name/acls",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Roles", "MQTT"],
+        summary: "Adds an ACL rule to an MQTT role",
+        description: "Appends a new Access Control List (ACL) rule to an existing MQTT role in Mosquitto's Dynamic Security. Returns a 404 if the specified role does not exist, and a 409 Conflict if an ACL for the exact topic already exists. Requires administrator privileges.",
+        security: [{ bearerAuth: [] }],
+        params: AddRoleAclParamsSchema,
+        body: AddRoleAclBodySchema,
+        response: {
+          200: ResponseMessageSchema,
+          404: HttpErrorSchema,
+          409: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
+      }
+    },
+    async (request, reply) => {
+      const { params, body } = request;
+
+      const [response] = (await fastify.mqtt.dynsec.addRoleACL({
+        rolename: params.name,
+        acltype: body.acltype,
+        topic: body.topic,
+        priority: body.priority,
+        allow: body.allow
+      })).responses;
+
+      if (response?.error) {
+        if (response.error === "Role not found") {
+          return reply.notFound(`Role '${params.name}' not found.`);
+        }
+
+        if (response.error === "ACL with this topic already exists") {
+          return reply.conflict("ACL with this topic already exists");
+        }
+
+        return reply.internalServerError("Failed to process command in Mosquitto");
+      }
+
+      return { message: "ACL added" };
+    }
+  );
 }
 
 export default rolesRoutes;

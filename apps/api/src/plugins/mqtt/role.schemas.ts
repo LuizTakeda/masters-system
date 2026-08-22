@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { number } from "zod";
 
 // ### listRoles ###
 
@@ -132,3 +132,26 @@ export const DeleteRoleResponseSchema = z.object({
 });
 
 export type DeleteRoleResponseType = z.infer<typeof DeleteRoleResponseSchema>;
+
+// ### addRoleACL ###
+
+export const AddRoleACLSchema = z.object({
+  command: z.literal("addRoleACL"),
+  rolename: z.string().min(1).max(100),
+  "acltype": z.enum(["publishClientSend", "publishClientReceive", "subscribePattern", "unsubscribePattern"]).describe("Permission type (e.g., publishClientSend, subscribePattern)"),
+  topic: z.string().describe("MQTT topic filter (e.g., '#', '+/sensors')"),
+  priority: z.number().describe("Rule priority"),
+  allow: z.boolean().describe("If true, allows access; if false, explicitly denies it"),
+});
+
+export type AddRoleACLType = z.infer<typeof AddRoleACLSchema>;
+
+// Response
+export const AddRoleACLResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("addRoleACL"),
+    error: z.string().optional()
+  }))
+});
+
+export type AddRoleACLResponseType = z.infer<typeof AddRoleACLResponseSchema>;
