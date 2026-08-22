@@ -20,11 +20,11 @@ export default fp(async (fastify) => {
       ],
       components: {
         securitySchemes: {
-          apiKey: {
-            type: 'apiKey',
-            name: 'apiKey',
-            in: 'header'
-          }
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+          },
         }
       }
     },
@@ -34,7 +34,7 @@ export default fp(async (fastify) => {
   await fastify.register(swaggerUI, {
     routePrefix: '/api/docs',
     uiConfig: {
-      docExpansion: 'full',
+      docExpansion: "none",
       deepLinking: false
     },
     uiHooks: {
