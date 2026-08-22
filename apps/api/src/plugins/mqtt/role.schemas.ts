@@ -62,6 +62,7 @@ export const GetRoleSchema = z.object({
 
 export type GetRoleType = z.infer<typeof GetRoleSchema>;
 
+// Response
 export const GetRoleResponseSchema = z.object({
   responses: z.array(
     z.object({
@@ -85,3 +86,31 @@ export const GetRoleResponseSchema = z.object({
 });
 
 export type GetRoleResponseType = z.infer<typeof GetRoleResponseSchema>;
+
+// ### createRole ###
+
+export const CreateRoleSchema = z.object({
+  command: z.literal("createRole"),
+  rolename: z.string().min(1, "Role name is required").max(100),
+  textname: z.string().min(1).max(100).optional(),
+  textdescription: z.string().min(1).max(256).optional(),
+  acls: z.array(z.object({
+    acltype: z.enum(["publishClientSend", "publishClientReceive", "subscribePattern", "unsubscribePattern"]).describe("Permission type (e.g., publishClientSend, subscribePattern)"),
+    topic: z.string().describe("MQTT topic filter (e.g., '#', '+/sensors')"),
+    priority: z.number().describe("Rule priority"),
+    allow: z.boolean().describe("If true, allows access; if false, explicitly denies it"),
+  })).optional(),
+});
+
+export type CreateRoleType = z.infer<typeof CreateRoleSchema>;
+
+// Response
+export const CreateRoleResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("createRole"),
+    error: z.string().optional()
+  }))
+});
+
+export type CreateRoleResponseType = z.infer<typeof CreateRoleResponseSchema>;
+

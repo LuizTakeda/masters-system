@@ -1,5 +1,5 @@
-import { HttpErrorSchema } from "@repo/types/commons";
-import { GetRoleNamesQuerySchema, GetRoleNamesResponseSchema, GetRoleParamsSchema, GetRoleResponseSchema, GetRolesQuerySchema, GetRolesResponseSchema } from "@repo/types/endpoints/mqtt/role/role";
+import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
+import { CreateRoleBodySchema, GetRoleNamesQuerySchema, GetRoleNamesResponseSchema, GetRoleParamsSchema, GetRoleResponseSchema, GetRolesQuerySchema, GetRolesResponseSchema } from "@repo/types/endpoints/mqtt/role/role";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
@@ -96,6 +96,51 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
 
       return response?.data
     })
+
+  fastify.post("",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Roles", "MQTT"],
+        summary: "Creates a new MQTT role",
+        description: "Creates a new role in Mosquitto's Dynamic Security configuration. Accepts an optional text name, description, and an initial set of Access Control Lists (ACLs). Returns a 409 Conflict if a role with the same name already exists. Requires administrator privileges.",
+        security: [{ bearerAuth: [] }],
+        body: CreateRoleBodySchema,
+        response: {
+          200: ResponseMessageSchema,
+          409: HttpErrorSchema,
+          422: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
+      }
+    },
+    async (request, reply) => {
+      const { body } = request;
+
+      if (body.rolename == "names") {
+        return reply.unprocessableEntity("The word 'names' is a reserved keyword and cannot be used as a role name.")
+      }
+
+      const [response] = (await fastify.mqtt.dynsec.createRole({
+        rolename: body.rolename,
+        textname: body.textname,
+        textdescription: body.textdescription,
+        acls: body.acls,
+      })).responses;
+
+      if (response?.error) {
+
+        if (response.error === "Role already exists") {
+          return reply.conflict("Role already exists");
+        }
+
+        return reply.internalServerError("Failed to send command");
+      }
+
+
+      return { message: "Role created" };
+    }
+  )
 }
 
 export default rolesRoutes;
