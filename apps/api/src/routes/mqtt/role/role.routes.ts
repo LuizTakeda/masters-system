@@ -153,6 +153,7 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
         params: DeleteRoleParamsSchema,
         response: {
           200: ResponseMessageSchema,
+          403: HttpErrorSchema,
           404: HttpErrorSchema,
           422: HttpErrorSchema,
           500: HttpErrorSchema
@@ -164,6 +165,10 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
 
       if (params.name == "names") {
         return reply.unprocessableEntity("The word 'names' is a reserved keyword and cannot be used as a role name.")
+      }
+
+      if (params.name === "admin") {
+        return reply.forbidden("System roles cannot be deleted.")
       }
 
       const [response] = (await fastify.mqtt.dynsec.deleteRole({
