@@ -1,7 +1,333 @@
+import { z } from "zod";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+// Ajuste o import conforme a sua estrutura real:
+import { HttpErrorSchema } from "@repo/types/commons";
+import { GetClientsQuerySchema, GetClientsResponseSchema } from "@repo/types/endpoints/mqtt/client";
 
+// ==========================================
+// HTTP Schemas (Validação de Entrada)
+// ==========================================
+const PaginationQuerySchema = z.object({
+  count: z.coerce.number().min(-1).optional().default(-1),
+  offset: z.coerce.number().nonnegative().optional().default(0),
+});
+
+const ClientParamsSchema = z.object({
+  username: z.string().min(1, "Username is required").max(100)
+});
+
+const CreateClientBodySchema = z.object({
+  username: z.string().min(1).max(100),
+  password: z.string().min(1),
+  clientid: z.string().optional(),
+  textname: z.string().optional(),
+  textdescription: z.string().optional(),
+  groups: z.array(z.object({ groupname: z.string(), priority: z.number().optional() })).optional(),
+  roles: z.array(z.object({ rolename: z.string(), priority: z.number().optional() })).optional()
+});
+
+const SetPasswordBodySchema = z.object({
+  password: z.string().min(1, "New password is required")
+});
+
+const AddClientRoleBodySchema = z.object({
+  rolename: z.string().min(1, "Role name is required"),
+  priority: z.number().optional()
+});
+
+const RemoveClientRoleBodySchema = z.object({
+  rolename: z.string().min(1, "Role name to remove is required")
+});
+
+// ==========================================
+// Rotas de Clients
+// ==========================================
 const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
 
+  // ==========================================
+  // GET / (List Clients Verbose)
+  // ==========================================
+  fastify.get("",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Clients", "MQTT"],
+        summary: "Lists MQTT clients with details",
+        security: [{ bearerAuth: [] }],
+        querystring: GetClientsQuerySchema,
+        response: {
+          200: GetClientsResponseSchema,
+          500: HttpErrorSchema
+        }
+      },
+    },
+    async (request, reply) => {
+      try {
+        const [response] = (await fastify.mqtt.dynsec.listClientsVerbose({
+          count: request.query.count,
+          offset: request.query.offset
+        })).responses;
+
+        if (response?.error) {
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Fail to fetch clients");
+        }
+
+        return response?.data;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
+    }
+  );
+
+  // ==========================================
+  // GET /names (List Clients)
+  // ==========================================
+  fastify.get("/names",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Clients", "MQTT"],
+        summary: "Lists MQTT client usernames",
+        security: [{ bearerAuth: [] }],
+        querystring: PaginationQuerySchema,
+      }
+    },
+    async (request, reply) => {
+      try {
+        const response = await fastify.mqtt.dynsec.listClients({
+          count: request.query.count,
+          offset: request.query.offset
+        });
+        return response;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
+    }
+  );
+
+  // ==========================================
+  // GET /:username (Get Client)
+  // ==========================================
+  fastify.get("/:username",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Clients", "MQTT"],
+        summary: "Retrieves a specific MQTT client",
+        security: [{ bearerAuth: [] }],
+        params: ClientParamsSchema,
+      }
+    },
+    async (request, reply) => {
+      try {
+        const response = await fastify.mqtt.dynsec.getClient({
+          username: request.params.username
+        });
+        return response;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
+    }
+  );
+
+  // ==========================================
+  // POST / (Create Client)
+  // ==========================================
+  fastify.post("",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Clients", "MQTT"],
+        summary: "Creates a new MQTT client",
+        security: [{ bearerAuth: [] }],
+        body: CreateClientBodySchema,
+      }
+    },
+    async (request, reply) => {
+      try {
+        const response = await fastify.mqtt.dynsec.createClient({
+          username: request.body.username,
+          password: request.body.password,
+          clientid: request.body.clientid,
+          textname: request.body.textname,
+          textdescription: request.body.textdescription,
+          groups: request.body.groups,
+          roles: request.body.roles,
+        });
+        return response;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
+    }
+  );
+
+  // ==========================================
+  // DELETE /:username (Delete Client)
+  // ==========================================
+  fastify.delete("/:username",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Clients", "MQTT"],
+        summary: "Deletes a specific MQTT client",
+        security: [{ bearerAuth: [] }],
+        params: ClientParamsSchema,
+      }
+    },
+    async (request, reply) => {
+      try {
+        const response = await fastify.mqtt.dynsec.deleteClient({
+          username: request.params.username
+        });
+        return response;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
+    }
+  );
+
+  // ==========================================
+  // POST /:username/enable (Enable Client)
+  // ==========================================
+  fastify.post("/:username/enable",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Clients", "MQTT"],
+        summary: "Enables an MQTT client",
+        security: [{ bearerAuth: [] }],
+        params: ClientParamsSchema,
+      }
+    },
+    async (request, reply) => {
+      try {
+        const response = await fastify.mqtt.dynsec.enableClient({
+          username: request.params.username
+        });
+        return response;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
+    }
+  );
+
+  // ==========================================
+  // POST /:username/disable (Disable Client)
+  // ==========================================
+  fastify.post("/:username/disable",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Clients", "MQTT"],
+        summary: "Disables an MQTT client",
+        security: [{ bearerAuth: [] }],
+        params: ClientParamsSchema,
+      }
+    },
+    async (request, reply) => {
+      try {
+        const response = await fastify.mqtt.dynsec.disableClient({
+          username: request.params.username
+        });
+        return response;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
+    }
+  );
+
+  // ==========================================
+  // PUT /:username/password (Set Client Password)
+  // ==========================================
+  fastify.put("/:username/password",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Clients", "MQTT"],
+        summary: "Updates an MQTT client's password",
+        security: [{ bearerAuth: [] }],
+        params: ClientParamsSchema,
+        body: SetPasswordBodySchema,
+      }
+    },
+    async (request, reply) => {
+      try {
+        const response = await fastify.mqtt.dynsec.setClientPassword({
+          username: request.params.username,
+          password: request.body.password
+        });
+        return response;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
+    }
+  );
+
+  // ==========================================
+  // POST /:username/roles (Add Client Role)
+  // ==========================================
+  fastify.post("/:username/roles",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Clients", "MQTT"],
+        summary: "Adds a role to a client",
+        security: [{ bearerAuth: [] }],
+        params: ClientParamsSchema,
+        body: AddClientRoleBodySchema,
+      }
+    },
+    async (request, reply) => {
+      try {
+        const response = await fastify.mqtt.dynsec.addClientRole({
+          username: request.params.username,
+          rolename: request.body.rolename,
+          priority: request.body.priority
+        });
+        return response;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
+    }
+  );
+
+  // ==========================================
+  // DELETE /:username/roles (Remove Client Role)
+  // ==========================================
+  fastify.delete("/:username/roles",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Clients", "MQTT"],
+        summary: "Removes a role from a client",
+        security: [{ bearerAuth: [] }],
+        params: ClientParamsSchema,
+        body: RemoveClientRoleBodySchema, // Usando Body para padronizar com AddRole
+      }
+    },
+    async (request, reply) => {
+      try {
+        const response = await fastify.mqtt.dynsec.removeClientRole({
+          username: request.params.username,
+          rolename: request.body.rolename
+        });
+        return response;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
+    }
+  );
 }
 
 export default clientRoutes;

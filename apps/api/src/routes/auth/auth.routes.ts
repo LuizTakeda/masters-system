@@ -41,7 +41,7 @@ const authRoutes: FastifyPluginAsyncZod = async (fastify) => {
       if (redirectTo && allowedOrigins.includes(new URL(redirectTo).origin)) {
         reply.setCookie("redirect_to", redirectTo, {
           ...cookieOptions,
-          maxAge: 5 * 60, // 5 min
+          maxAge: 60 * 60 * 24 * 365 * 10
         });
       }
 

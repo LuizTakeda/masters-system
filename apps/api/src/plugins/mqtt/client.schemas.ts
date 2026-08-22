@@ -9,8 +9,60 @@ export const ListClientsSchema = z.object({
   count: z.number().min(-1).describe("-1 for all, or a positive integer for a limited count"),
   offset: z.number().nonnegative().describe("Where in the list to start")
 });
-
 export type ListClientsType = z.infer<typeof ListClientsSchema>;
+
+// ## Response
+export const ListClientsResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("listClients"),
+    error: z.string().optional(),
+    data: z.object({
+      totalCount: z.number(),
+      clients: z.array(z.string())
+    }).optional()
+  }))
+});
+export type ListClientsResponseType = z.infer<typeof ListClientsResponseSchema>
+
+// ## Verbose Response
+export const ListClientsVerboseResponseSchema = z.object({
+  responses: z.array(
+    z.object({
+      command: z.literal("listClients"),
+      error: z.string().optional(),
+      data: z.object({
+        totalCount: z.number().int().nonnegative(),
+        clients: z.array(
+          z.object({
+            username: z.string(),
+            clientid: z.string().optional(),
+            textname: z.string().optional(),
+            textdescription: z.string().optional(),
+            roles: z.array(
+              z.object({
+                rolename: z.string(),
+                priority: z.number().int().optional()
+              })
+            ).optional().default([]),
+            groups: z.array(
+              z.object({
+                groupname: z.string(),
+                priority: z.number().int().optional()
+              })
+            ).optional().default([]),
+            connections: z.array(
+              z.object({
+                address: z.string()
+              })
+            ).optional().default([])
+          })
+        ).optional().default([])
+      }).optional()
+    })
+  )
+});
+export type ListClientsVerboseResponseType = z.infer<typeof ListClientsVerboseResponseSchema>;
+
 
 // ==========================================
 // Get Client
