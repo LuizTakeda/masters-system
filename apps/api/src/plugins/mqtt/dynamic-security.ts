@@ -1,5 +1,5 @@
 import mqtt from "mqtt"
-import { AddRoleACLResponseSchema, AddRoleACLSchema, CreateRoleResponseSchema, CreateRoleSchema, DeleteRoleResponseSchema, DeleteRoleSchema, GetRoleResponseSchema, GetRoleSchema, ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, type AddRoleACLType, type CreateRoleType, type DeleteRoleType, type GetRoleType, type ListRolesType } from "./role.schemas.js"
+import { AddRoleACLResponseSchema, AddRoleACLSchema, CreateRoleResponseSchema, CreateRoleSchema, DeleteRoleResponseSchema, DeleteRoleSchema, GetRoleResponseSchema, GetRoleSchema, ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, RemoveRoleACLResponseSchema, RemoveRoleACLSchema, type AddRoleACLType, type CreateRoleType, type DeleteRoleType, type GetRoleType, type ListRolesType, type RemoveRoleACLType } from "./role.schemas.js"
 import z from "zod"
 import type { EventEmitter } from "events"
 
@@ -13,7 +13,8 @@ const DSCommandsSchema = z.object({
       GetRoleSchema,
       CreateRoleSchema,
       DeleteRoleSchema,
-      AddRoleACLSchema
+      AddRoleACLSchema,
+      RemoveRoleACLSchema
     ])
   )
 });
@@ -183,6 +184,14 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     return AddRoleACLResponseSchema.parse(response);
   }
 
+  const removeRoleACL = async (payload: Omit<RemoveRoleACLType, "command">) => {
+    const response = await sendCommands({
+      commands: [{ command: "removeRoleACL", ...payload }]
+    });
+
+    return RemoveRoleACLResponseSchema.parse(response);
+  }
+
   return {
     // ### Roles ###
     listRoles,
@@ -190,7 +199,8 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     getRole,
     createRole,
     deleteRole,
-    addRoleACL
+    addRoleACL,
+    removeRoleACL
   }
 }
 

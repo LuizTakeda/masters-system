@@ -155,3 +155,24 @@ export const AddRoleACLResponseSchema = z.object({
 });
 
 export type AddRoleACLResponseType = z.infer<typeof AddRoleACLResponseSchema>;
+
+// ### removeRoleACL ###
+
+export const RemoveRoleACLSchema = z.object({
+  command: z.literal("removeRoleACL"),
+  rolename: z.string().min(1).max(100),
+  acltype: z.enum(["publishClientSend", "publishClientReceive", "subscribePattern", "unsubscribePattern"]).describe("Permission type"),
+  topic: z.string().min(1).describe("MQTT topic filter"),
+});
+
+export type RemoveRoleACLType = z.infer<typeof RemoveRoleACLSchema>;
+
+// Response
+export const RemoveRoleACLResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("removeRoleACL"),
+    error: z.string().optional()
+  }))
+});
+
+export type RemoveRoleACLResponseType = z.infer<typeof RemoveRoleACLResponseSchema>;
