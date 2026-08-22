@@ -1,8 +1,28 @@
 import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
-import { AddRoleAclBodySchema, AddRoleAclParamsSchema, CreateRoleBodySchema, DeleteRoleParamsSchema, GetRoleNamesQuerySchema, GetRoleNamesResponseSchema, GetRoleParamsSchema, GetRoleResponseSchema, GetRolesQuerySchema, GetRolesResponseSchema, RemoveRoleAclBodySchema, RemoveRoleAclParamsSchema } from "@repo/types/endpoints/mqtt/role/role";
+import {
+  AddRoleAclBodySchema, AddRoleAclParamsSchema, CreateRoleBodySchema,
+  DeleteRoleParamsSchema, GetRoleNamesQuerySchema, GetRoleNamesResponseSchema,
+  GetRoleParamsSchema, GetRoleResponseSchema, GetRolesQuerySchema,
+  GetRolesResponseSchema, RemoveRoleAclBodySchema, RemoveRoleAclParamsSchema
+} from "@repo/types/endpoints/mqtt/role/role";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
+const SYSTEM_ROLES = [
+  "admin",
+  "broker-admin",
+  "client",
+  "dynsec-admin",
+  "super-admin",
+  "sys-notify",
+  "sys-observe",
+  "topic-observe"
+];
+
 const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
+
+  // ==========================================
+  // GET / (List Roles)
+  // ==========================================
   fastify.get("",
     {
       onRequest: [fastify.authenticateAdmin],
@@ -12,255 +32,264 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
         description: "Retrieves a paginated list of all roles configured in Mosquitto's Dynamic Security. Requires administrator privileges.",
         security: [{ bearerAuth: [] }],
         querystring: GetRolesQuerySchema,
-        response: {
-          200: GetRolesResponseSchema,
-          500: HttpErrorSchema
-        },
+        response: { 200: GetRolesResponseSchema, 500: HttpErrorSchema },
       },
     }, async (request, reply) => {
-      const { query } = request;
-
-      const [response] = (await fastify.mqtt.dynsec.listRolesVerbose(
-        {
-          count: query.count,
-          offset: query.offset
+      try {
+        const [response] = (await fastify.mqtt.dynsec.listRolesVerbose({
+          count: request.query.count,
+          offset: request.query.offset
         })).responses;
 
-      if (response?.error) {
-        return reply.internalServerError("Failed to send command");
-      }
+        if (response?.error) {
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to fetch roles");
+        }
 
-      return response?.data
+        return response?.data;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
     });
 
+  // ==========================================
+  // GET /names (List Role Names)
+  // ==========================================
   fastify.get("/names",
     {
       onRequest: [fastify.authenticateAdmin],
       schema: {
         tags: ["MQTT Roles", "MQTT"],
         summary: "Lists MQTT role names",
-        description: "Retrieves a paginated list of role names configured in Mosquitto's Dynamic Security. Unlike the detailed list, this endpoint returns only the role identifiers.",
+        description: "Retrieves a paginated list of role names.",
         security: [{ bearerAuth: [] }],
         querystring: GetRoleNamesQuerySchema,
-        response: {
-          200: GetRoleNamesResponseSchema,
-          500: HttpErrorSchema
-        },
+        response: { 200: GetRoleNamesResponseSchema, 500: HttpErrorSchema },
       }
     },
     async (request, reply) => {
-      const { query } = request;
-
-      const [response] = (await fastify.mqtt.dynsec.listRoles(
-        {
-          count: query.count,
-          offset: query.offset
+      try {
+        const [response] = (await fastify.mqtt.dynsec.listRoles({
+          count: request.query.count,
+          offset: request.query.offset
         })).responses;
 
-      if (response?.error) {
-        return reply.internalServerError("Failed to send command");
-      }
+        if (response?.error) {
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to fetch role names");
+        }
 
-      return response?.data
+        return response?.data;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
+      }
     });
 
+  // ==========================================
+  // GET /:name (Get Specific Role)
+  // ==========================================
   fastify.get("/:name",
     {
       onRequest: [fastify.authenticateAdmin],
       schema: {
         tags: ["MQTT Roles", "MQTT"],
         summary: "Retrieves a specific MQTT role",
-        description: "Fetches the detailed configuration and Access Control Lists (ACLs) of a specific MQTT role by its name from Mosquitto's Dynamic Security.",
+        description: "Fetches detailed configuration of a specific MQTT role.",
         security: [{ bearerAuth: [] }],
         params: GetRoleParamsSchema,
-        response: {
-          200: GetRoleResponseSchema,
-          404: HttpErrorSchema,
-          500: HttpErrorSchema
-        }
+        response: { 200: GetRoleResponseSchema, 404: HttpErrorSchema, 500: HttpErrorSchema }
       }
     },
     async (request, reply) => {
-      const { params } = request;
+      try {
+        const [response] = (await fastify.mqtt.dynsec.getRole({ rolename: request.params.name })).responses;
 
-      const [response] = (await fastify.mqtt.dynsec.getRole({ rolename: params.name })).responses;
+        if (response?.error) {
+          if (response.error === "Role not found") {
+            return reply.notFound("Role not found");
+          }
 
-      if (response?.error) {
-
-        if (response.error === "Role not found") {
-          return reply.notFound("Role not found");
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to fetch role");
         }
 
-        return reply.internalServerError("Failed to send command");
+        return response?.data;
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
       }
+    });
 
-      return response?.data
-    })
-
+  // ==========================================
+  // POST / (Create Role)
+  // ==========================================
   fastify.post("",
     {
       onRequest: [fastify.authenticateAdmin],
       schema: {
         tags: ["MQTT Roles", "MQTT"],
         summary: "Creates a new MQTT role",
-        description: "Creates a new role in Mosquitto's Dynamic Security configuration. Accepts an optional text name, description, and an initial set of Access Control Lists (ACLs).",
+        description: "Creates a new role in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
         body: CreateRoleBodySchema,
-        response: {
-          200: ResponseMessageSchema,
-          409: HttpErrorSchema,
-          422: HttpErrorSchema,
-          500: HttpErrorSchema
-        }
+        response: { 200: ResponseMessageSchema, 409: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
       }
     },
     async (request, reply) => {
       const { body } = request;
 
-      if (body.rolename == "names") {
-        return reply.unprocessableEntity("The word 'names' is a reserved keyword and cannot be used as a role name.")
+      if (body.rolename === "names") {
+        return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
       }
 
-      const [response] = (await fastify.mqtt.dynsec.createRole({
-        rolename: body.rolename,
-        textname: body.textname,
-        textdescription: body.textdescription,
-        acls: body.acls,
-      })).responses;
+      if (SYSTEM_ROLES.includes(body.rolename)) {
+        return reply.conflict("Cannot create a role with a reserved system name.");
+      }
 
-      if (response?.error) {
+      try {
+        const [response] = (await fastify.mqtt.dynsec.createRole({
+          rolename: body.rolename,
+          textname: body.textname,
+          textdescription: body.textdescription,
+          acls: body.acls,
+        })).responses;
 
-        if (response.error === "Role already exists") {
-          return reply.conflict("Role already exists");
+        if (response?.error) {
+          if (response.error === "Role already exists") {
+            return reply.conflict("Role already exists");
+          }
+
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to create role");
         }
 
-        return reply.internalServerError("Failed to send command");
+        return { message: "Role created" };
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
       }
-
-
-      return { message: "Role created" };
     }
-  )
+  );
 
+  // ==========================================
+  // DELETE /:name (Delete Role)
+  // ==========================================
   fastify.delete("/:name",
     {
       onRequest: [fastify.authenticateAdmin],
       schema: {
         tags: ["MQTT Roles", "MQTT"],
         summary: "Deletes a specific MQTT role",
-        description: "Permanently removes a role from Mosquitto's Dynamic Security configuration by its name.",
         security: [{ bearerAuth: [] }],
         params: DeleteRoleParamsSchema,
-        response: {
-          200: ResponseMessageSchema,
-          403: HttpErrorSchema,
-          404: HttpErrorSchema,
-          422: HttpErrorSchema,
-          500: HttpErrorSchema
-        }
+        response: { 200: ResponseMessageSchema, 403: HttpErrorSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
       }
     },
     async (request, reply) => {
       const { params } = request;
 
-      if (params.name == "names") {
-        return reply.unprocessableEntity("The word 'names' is a reserved keyword and cannot be used as a role name.")
+      if (params.name === "names") {
+        return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
       }
 
-      if (params.name === "admin") {
-        return reply.forbidden("System roles cannot be deleted.")
+      if (SYSTEM_ROLES.includes(params.name)) {
+        return reply.forbidden(`The role '${params.name}' is a system role and cannot be deleted.`);
       }
 
-      const [response] = (await fastify.mqtt.dynsec.deleteRole({
-        rolename: params.name
-      })).responses;
+      try {
+        const [response] = (await fastify.mqtt.dynsec.deleteRole({ rolename: params.name })).responses;
 
-      if (response?.error) {
+        if (response?.error) {
+          if (response.error === "Role not found") {
+            return reply.notFound("Role not found");
+          }
 
-        if (response.error === "Role not found") {
-          return reply.notFound("Role not found");
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to delete role");
         }
 
-        return reply.internalServerError("Failed to send command");
+        return { message: "Role deleted" };
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
       }
-
-      return { message: "Role deleted" };
     }
-  )
+  );
 
+  // ==========================================
+  // POST /:name/acls (Add ACL)
+  // ==========================================
   fastify.post("/:name/acls",
     {
       onRequest: [fastify.authenticateAdmin],
       schema: {
         tags: ["MQTT Roles", "MQTT"],
         summary: "Adds an ACL rule to an MQTT role",
-        description: "Appends a new Access Control List (ACL) rule to an existing MQTT role in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
         params: AddRoleAclParamsSchema,
         body: AddRoleAclBodySchema,
-        response: {
-          200: ResponseMessageSchema,
-          404: HttpErrorSchema,
-          409: HttpErrorSchema,
-          500: HttpErrorSchema
-        }
+        response: { 200: ResponseMessageSchema, 403: HttpErrorSchema, 404: HttpErrorSchema, 409: HttpErrorSchema, 500: HttpErrorSchema }
       }
     },
     async (request, reply) => {
       const { params, body } = request;
 
-      if (params.name === "admin") {
-        return reply.forbidden("System roles cannot be modified directly.");
+      if (SYSTEM_ROLES.includes(params.name)) {
+        return reply.forbidden(`System roles like '${params.name}' cannot be modified directly.`);
       }
 
+      try {
+        const [response] = (await fastify.mqtt.dynsec.addRoleACL({
+          rolename: params.name,
+          acltype: body.acltype,
+          topic: body.topic,
+          priority: body.priority,
+          allow: body.allow
+        })).responses;
 
-      const [response] = (await fastify.mqtt.dynsec.addRoleACL({
-        rolename: params.name,
-        acltype: body.acltype,
-        topic: body.topic,
-        priority: body.priority,
-        allow: body.allow
-      })).responses;
+        if (response?.error) {
+          if (response.error === "Role not found") {
+            return reply.notFound(`Role '${params.name}' not found.`);
+          }
 
-      if (response?.error) {
-        if (response.error === "Role not found") {
-          return reply.notFound(`Role '${params.name}' not found.`);
+          if (response.error === "ACL with this topic already exists") {
+            return reply.conflict("ACL with this topic already exists");
+          }
+
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to add ACL");
         }
 
-        if (response.error === "ACL with this topic already exists") {
-          return reply.conflict("ACL with this topic already exists");
-        }
-
-        return reply.internalServerError("Failed to process command in Mosquitto");
+        return { message: "ACL added" };
+      } catch (error) {
+        request.log.error(error, "MQTT Broker communication failure");
+        return reply.internalServerError("Service temporarily unavailable");
       }
-
-      return { message: "ACL added" };
     }
   );
 
+  // ==========================================
+  // DELETE /:name/acls (Remove ACL)
+  // ==========================================
   fastify.delete("/:name/acls",
     {
       onRequest: [fastify.authenticateAdmin],
       schema: {
         tags: ["MQTT Roles", "MQTT"],
         summary: "Removes an ACL rule from an MQTT role",
-        description: "Removes a specific Access Control List (ACL) rule from an existing MQTT role in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
         params: RemoveRoleAclParamsSchema,
-        body: RemoveRoleAclBodySchema, // Enviando os dados via Body para suportar slashes (/) no tópico
-        response: {
-          200: ResponseMessageSchema,
-          403: HttpErrorSchema,
-          404: HttpErrorSchema,
-          500: HttpErrorSchema
-        }
+        body: RemoveRoleAclBodySchema,
+        response: { 200: ResponseMessageSchema, 403: HttpErrorSchema, 404: HttpErrorSchema, 500: HttpErrorSchema }
       }
     },
     async (request, reply) => {
       const { params, body } = request;
 
-      if (params.name === "admin") {
-        return reply.forbidden("System roles cannot be modified directly.");
+      if (SYSTEM_ROLES.includes(params.name)) {
+        return reply.forbidden(`System roles like '${params.name}' cannot be modified directly.`);
       }
 
       try {
@@ -279,13 +308,13 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
             return reply.notFound("This ACL rule was not found in the role.");
           }
 
-          request.log.error(`Mosquitto DynSec Error on removeRoleACL: ${response.error}`);
-          return reply.internalServerError("Failed to process command in Mosquitto");
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to remove ACL");
         }
 
         return { message: "ACL removed successfully" };
       } catch (error) {
-        request.log.error(error, "Critical failure communicating with MQTT Broker");
+        request.log.error(error, "MQTT Broker communication failure");
         return reply.internalServerError("Service temporarily unavailable");
       }
     }
