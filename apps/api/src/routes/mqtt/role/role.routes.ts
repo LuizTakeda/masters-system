@@ -4,7 +4,7 @@ import {
   DeleteRoleParamsSchema, GetRoleNamesQuerySchema, GetRoleNamesResponseSchema,
   GetRoleParamsSchema, GetRoleResponseSchema, GetRolesQuerySchema,
   GetRolesResponseSchema, RemoveRoleAclBodySchema, RemoveRoleAclParamsSchema
-} from "@repo/types/endpoints/mqtt/role/role";
+} from "@repo/types/endpoints/mqtt/role";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 const SYSTEM_ROLES = [
