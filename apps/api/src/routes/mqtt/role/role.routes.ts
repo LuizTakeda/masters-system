@@ -1,5 +1,5 @@
 import { HttpErrorSchema } from "@repo/types/commons";
-import { GetRoleNamesQuerySchema, GetRoleNamesResponseSchema, GetRolesQuerySchema, GetRolesResponseSchema } from "@repo/types/endpoints/mqtt/role/role";
+import { GetRoleNamesQuerySchema, GetRoleNamesResponseSchema, GetRoleParamsSchema, GetRoleResponseSchema, GetRolesQuerySchema, GetRolesResponseSchema } from "@repo/types/endpoints/mqtt/role/role";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
@@ -27,7 +27,7 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
         })).responses;
 
       if (response?.error) {
-        return reply.internalServerError("Fail to send command");
+        return reply.internalServerError("Failed to send command");
       }
 
       return response?.data
@@ -58,11 +58,44 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
         })).responses;
 
       if (response?.error) {
-        return reply.internalServerError("Fail to send command");
+        return reply.internalServerError("Failed to send command");
       }
 
       return response?.data
     });
+
+  fastify.get("/:name",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Roles", "MQTT"],
+        summary: "Retrieves a specific MQTT role",
+        description: "Fetches the detailed configuration and Access Control Lists (ACLs) of a specific MQTT role by its name from Mosquitto's Dynamic Security. Returns a 404 if the role does not exist. Requires administrator privileges.",
+        security: [{ bearerAuth: [] }],
+        params: GetRoleParamsSchema,
+        response: {
+          200: GetRoleResponseSchema,
+          404: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
+      }
+    },
+    async (request, reply) => {
+      const { params } = request;
+
+      const [response] = (await fastify.mqtt.dynsec.getRole({ rolename: params.name })).responses;
+
+      if (response?.error) {
+
+        if (response.error === "Role not found") {
+          return reply.notFound("Role not found");
+        }
+
+        return reply.internalServerError("Failed to send command");
+      }
+
+      return response?.data
+    })
 }
 
 export default rolesRoutes;

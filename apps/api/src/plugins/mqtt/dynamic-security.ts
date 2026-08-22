@@ -1,5 +1,5 @@
 import mqtt from "mqtt"
-import { ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, type ListRolesType } from "./role.schemas.js"
+import { GetRoleResponseSchema, GetRoleSchema, ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, type GetRoleType, type ListRolesType } from "./role.schemas.js"
 import z from "zod"
 import type { EventEmitter } from "events"
 
@@ -9,7 +9,8 @@ const RESP_TOPIC = "$CONTROL/dynamic-security/v1/response";
 const DSCommandsSchema = z.object({
   commands: z.array(
     z.discriminatedUnion("command", [
-      ListRolesSchema
+      ListRolesSchema,
+      GetRoleSchema
     ])
   )
 });
@@ -139,7 +140,6 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     return ListRolesResponseSchema.parse(response);
   }
 
-  // Retorna com todos os detalhes
   const listRolesVerbose = async (payload: Omit<ListRolesType, "command" | "verbose">) => {
     const response = await sendCommands({
       commands: [{ command: "listRoles", verbose: true, ...payload }]
@@ -148,9 +148,19 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     return ListRolesResponseVerboseSchema.parse(response);
   }
 
+  const getRole = async (payload: Omit<GetRoleType, "command">) => {
+    const response = await sendCommands({
+      commands: [{ command: "getRole", ...payload }]
+    });
+
+    return GetRoleResponseSchema.parse(response);
+  }
+
   return {
+    // ### Roles ###
     listRoles,
-    listRolesVerbose
+    listRolesVerbose,
+    getRole
   }
 }
 
