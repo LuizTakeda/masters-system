@@ -9,7 +9,6 @@ export const GetClientsQuerySchema = z.object({
   count: z.coerce.number().min(-1).describe("-1 for all, or a positive integer for a limited count"),
   offset: z.coerce.number().nonnegative().describe("Where in the list to start")
 });
-
 export type GetClientsQueryType = z.infer<typeof GetClientsQuerySchema>;
 
 // ### Response ###
@@ -41,4 +40,22 @@ export const GetClientsResponseSchema = z.object({
     })
   ).optional().default([])
 });
-export type GetClientsResponseType = z.infer<typeof GetClientsResponseSchema>; 
+export type GetClientsResponseType = z.infer<typeof GetClientsResponseSchema>;
+
+//##################################################
+// Get Client Names 
+//##################################################
+
+// ### Query ###
+export const GetClientNamesQuerySchema = z.object({
+  count: z.coerce.number().min(-1).describe("-1 for all, or a positive integer for a limited count"),
+  offset: z.coerce.number().nonnegative().describe("Where in the list to start")
+});
+export type GetClientNamesQueryType = z.infer<typeof GetClientsQuerySchema>;
+
+// ### Response ###
+export const GetClientNamesResponseSchema = z.object({
+  totalCount: z.number(),
+  clients: z.array(z.string())
+});
+export type GetClientNamesResponseType = z.infer<typeof GetClientNamesResponseSchema>;

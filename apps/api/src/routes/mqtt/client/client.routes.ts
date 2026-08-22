@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 // Ajuste o import conforme a sua estrutura real:
 import { HttpErrorSchema } from "@repo/types/commons";
-import { GetClientsQuerySchema, GetClientsResponseSchema } from "@repo/types/endpoints/mqtt/client";
+import { GetClientNamesQuerySchema, GetClientNamesResponseSchema, GetClientsQuerySchema, GetClientsResponseSchema } from "@repo/types/endpoints/mqtt/client";
 
 // ==========================================
 // HTTP Schemas (Validação de Entrada)
@@ -39,9 +39,14 @@ const RemoveClientRoleBodySchema = z.object({
   rolename: z.string().min(1, "Role name to remove is required")
 });
 
-// ==========================================
-// Rotas de Clients
-// ==========================================
+const SYSTEM_CLIENTS = [
+  "admin",
+];
+
+const INVALID_CLIENT_NAME = [
+  "names"
+];
+
 const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
 
   // ==========================================
@@ -91,16 +96,26 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
         tags: ["MQTT Clients", "MQTT"],
         summary: "Lists MQTT client usernames",
         security: [{ bearerAuth: [] }],
-        querystring: PaginationQuerySchema,
+        querystring: GetClientNamesQuerySchema,
+        response: {
+          200: GetClientNamesResponseSchema,
+          500: HttpErrorSchema
+        }
       }
     },
     async (request, reply) => {
       try {
-        const response = await fastify.mqtt.dynsec.listClients({
+        const [response] = (await fastify.mqtt.dynsec.listClients({
           count: request.query.count,
           offset: request.query.offset
-        });
-        return response;
+        })).responses;
+
+        if (response?.error) {
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Fail to fetch clients");
+        }
+
+        return response?.data;
       } catch (error) {
         request.log.error(error, "MQTT Broker communication failure");
         return reply.internalServerError("Service temporarily unavailable");
