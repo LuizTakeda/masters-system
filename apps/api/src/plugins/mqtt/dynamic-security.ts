@@ -1,5 +1,5 @@
 import mqtt from "mqtt"
-import { CreateRoleResponseSchema, CreateRoleSchema, GetRoleResponseSchema, GetRoleSchema, ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, type CreateRoleType, type GetRoleType, type ListRolesType } from "./role.schemas.js"
+import { CreateRoleResponseSchema, CreateRoleSchema, DeleteRoleResponseSchema, DeleteRoleSchema, GetRoleResponseSchema, GetRoleSchema, ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, type CreateRoleType, type DeleteRoleType, type GetRoleType, type ListRolesType } from "./role.schemas.js"
 import z from "zod"
 import type { EventEmitter } from "events"
 
@@ -11,7 +11,8 @@ const DSCommandsSchema = z.object({
     z.discriminatedUnion("command", [
       ListRolesSchema,
       GetRoleSchema,
-      CreateRoleSchema
+      CreateRoleSchema,
+      DeleteRoleSchema
     ])
   )
 });
@@ -165,12 +166,21 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     return CreateRoleResponseSchema.parse(response);
   }
 
+  const deleteRole = async (payload: Omit<DeleteRoleType, "command">) => {
+    const response = await sendCommands({
+      commands: [{ command: "deleteRole", ...payload }]
+    });
+
+    return DeleteRoleResponseSchema.parse(response);
+  }
+
   return {
     // ### Roles ###
     listRoles,
     listRolesVerbose,
     getRole,
-    createRole
+    createRole,
+    deleteRole
   }
 }
 

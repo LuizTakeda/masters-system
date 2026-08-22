@@ -104,3 +104,13 @@ export const CreateRoleBodySchema = z.object({
 });
 
 export type CreateRoleBodyType = z.infer<typeof CreateRoleBodySchema>;
+
+//##################################################
+// Delete Role 
+//##################################################
+
+export const DeleteRoleParamsSchema = z.object({
+  name: z.string().min(1).max(100)
+});
+
+export type DeleteRoleParamsType = z.infer<typeof DeleteRoleParamsSchema>;

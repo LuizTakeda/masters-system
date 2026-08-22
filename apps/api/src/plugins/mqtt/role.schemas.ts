@@ -114,3 +114,21 @@ export const CreateRoleResponseSchema = z.object({
 
 export type CreateRoleResponseType = z.infer<typeof CreateRoleResponseSchema>;
 
+// ### deleteRole ###
+
+export const DeleteRoleSchema = z.object({
+  command: z.literal("deleteRole"),
+  rolename: z.string().min(1).max(100)
+});
+
+export type DeleteRoleType = z.infer<typeof DeleteRoleSchema>;
+
+// Response
+export const DeleteRoleResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("deleteRole"),
+    error: z.string().optional()
+  }))
+});
+
+export type DeleteRoleResponseType = z.infer<typeof DeleteRoleResponseSchema>;

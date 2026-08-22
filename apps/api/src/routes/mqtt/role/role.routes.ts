@@ -1,5 +1,5 @@
 import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
-import { CreateRoleBodySchema, GetRoleNamesQuerySchema, GetRoleNamesResponseSchema, GetRoleParamsSchema, GetRoleResponseSchema, GetRolesQuerySchema, GetRolesResponseSchema } from "@repo/types/endpoints/mqtt/role/role";
+import { CreateRoleBodySchema, DeleteRoleParamsSchema, GetRoleNamesQuerySchema, GetRoleNamesResponseSchema, GetRoleParamsSchema, GetRoleResponseSchema, GetRolesQuerySchema, GetRolesResponseSchema } from "@repo/types/endpoints/mqtt/role/role";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
@@ -139,6 +139,47 @@ const rolesRoutes: FastifyPluginAsyncZod = async (fastify) => {
 
 
       return { message: "Role created" };
+    }
+  )
+
+  fastify.delete("/:name",
+    {
+      onRequest: [fastify.authenticateAdmin],
+      schema: {
+        tags: ["MQTT Roles", "MQTT"],
+        summary: "Deletes a specific MQTT role",
+        description: "Permanently removes a role from Mosquitto's Dynamic Security configuration by its name. Returns a 404 if the role does not exist and a 422 if attempting to use a reserved system keyword. Requires administrator privileges.",
+        security: [{ bearerAuth: [] }],
+        params: DeleteRoleParamsSchema,
+        response: {
+          200: ResponseMessageSchema,
+          404: HttpErrorSchema,
+          422: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
+      }
+    },
+    async (request, reply) => {
+      const { params } = request;
+
+      if (params.name == "names") {
+        return reply.unprocessableEntity("The word 'names' is a reserved keyword and cannot be used as a role name.")
+      }
+
+      const [response] = (await fastify.mqtt.dynsec.deleteRole({
+        rolename: params.name
+      })).responses;
+
+      if (response?.error) {
+
+        if (response.error === "Role not found") {
+          return reply.notFound("Role not found");
+        }
+
+        return reply.internalServerError("Failed to send command");
+      }
+
+      return { message: "Role deleted" };
     }
   )
 }
