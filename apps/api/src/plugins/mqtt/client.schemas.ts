@@ -242,3 +242,12 @@ export const RemoveClientRoleSchema = z.object({
   rolename: z.string().min(1, "Role name to remove is required")
 });
 export type RemoveClientRoleType = z.infer<typeof RemoveClientRoleSchema>;
+
+// ## Response
+export const RemoveClientRoleResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("removeClientRole"),
+    error: z.string().optional()
+  }))
+});
+export type RemoveClientRoleResponseType = z.infer<typeof RemoveClientRoleResponseSchema>;

@@ -450,6 +450,12 @@ const RemoveClientRoleSchema = z.object({
   username: z.string().min(1, "Username is required"),
   rolename: z.string().min(1, "Role name to remove is required")
 });
+const RemoveClientRoleResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("removeClientRole"),
+    error: z.string().optional()
+  }))
+});
 
 const CMD_TOPIC = "$CONTROL/dynamic-security/v1";
 const RESP_TOPIC = "$CONTROL/dynamic-security/v1/response";
@@ -621,7 +627,8 @@ async function createDynamicSecurityAPI(client, messageEventStream) {
     return AddClientRoleResponseSchema.parse(response);
   };
   const removeClientRole = async (payload) => {
-    return await sendCommands({ commands: [{ command: "removeClientRole", ...payload }] });
+    const response = await sendCommands({ commands: [{ command: "removeClientRole", ...payload }] });
+    return RemoveClientRoleResponseSchema.parse(response);
   };
   return {
     // Roles
@@ -734,13 +741,13 @@ if (isDevelopment) {
 }
 app.setErrorHandler((error, request, reply) => {
   request.log.error(error);
-  if (error.statusCode && error.statusCode < 500) {
+  if (error.statusCode) {
     return reply.send(error);
   }
   return reply.status(500).send({
     statusCode: 500,
     error: "Internal Server Error",
-    message: "Ocorreu um erro interno inesperado no servidor."
+    message: "Internal server error, contact staf"
   });
 });
 await app.register(autoload, {

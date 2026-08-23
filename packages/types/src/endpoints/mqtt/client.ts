@@ -184,4 +184,21 @@ export const AddClientRoleBodySchema = z.object({
 });
 export type AddClientRoleBodyType = z.infer<typeof AddClientRoleBodySchema>;
 
+//##################################################
+// Remove Client Role 
+//##################################################
+
+// ### Params ###
+export const RemoveClientRoleParamsSchema = z.object({
+  username: z.string().min(1, "Username is required").max(100)
+});
+export type RemoveClientRoleParamsType = z.infer<typeof RemoveClientRoleParamsSchema>;
+
+// ### Body ###
+export const RemoveClientRoleBodySchema = z.object({
+  rolename: z.string().min(1, "Role name to remove is required")
+});
+export type RemoveClientRoleBodyType = z.infer<typeof RemoveClientRoleBodySchema>;
+
+
 
