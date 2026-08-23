@@ -167,3 +167,21 @@ export const SetClientPasswordBodySchema = z.object({
 });
 export type SetClientPasswordBodyType = z.infer<typeof SetClientPasswordBodySchema>;
 
+//##################################################
+// Add Client Role 
+//##################################################
+
+// ### Params ###
+export const AddClientRoleParamsSchema = z.object({
+  username: z.string().min(1, "Username is required").max(100)
+});
+export type AddClientRoleParamsType = z.infer<typeof AddClientRoleParamsSchema>;
+
+// ### Body ###
+export const AddClientRoleBodySchema = z.object({
+  rolename: z.string().min(1, "Role name is required"),
+  priority: z.number().optional()
+});
+export type AddClientRoleBodyType = z.infer<typeof AddClientRoleBodySchema>;
+
+

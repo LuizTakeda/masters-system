@@ -439,6 +439,12 @@ const AddClientRoleSchema = z.object({
   rolename: z.string().min(1, "Role name is required"),
   priority: z.number().optional().describe("Optional priority")
 });
+const AddClientRoleResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("addClientRole"),
+    error: z.string().optional()
+  }))
+});
 const RemoveClientRoleSchema = z.object({
   command: z.literal("removeClientRole"),
   username: z.string().min(1, "Username is required"),
@@ -611,7 +617,8 @@ async function createDynamicSecurityAPI(client, messageEventStream) {
     return SetClientPasswordResponseSchema.parse(response);
   };
   const addClientRole = async (payload) => {
-    return await sendCommands({ commands: [{ command: "addClientRole", ...payload }] });
+    const response = await sendCommands({ commands: [{ command: "addClientRole", ...payload }] });
+    return AddClientRoleResponseSchema.parse(response);
   };
   const removeClientRole = async (payload) => {
     return await sendCommands({ commands: [{ command: "removeClientRole", ...payload }] });

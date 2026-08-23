@@ -222,8 +222,16 @@ export const AddClientRoleSchema = z.object({
   rolename: z.string().min(1, "Role name is required"),
   priority: z.number().optional().describe("Optional priority")
 });
-
 export type AddClientRoleType = z.infer<typeof AddClientRoleSchema>;
+
+// ## Response
+export const AddClientRoleResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("addClientRole"),
+    error: z.string().optional()
+  }))
+});
+export type AddClientRoleResponseType = z.infer<typeof AddClientRoleResponseSchema>;
 
 // ==========================================
 // Remove Client Role
@@ -233,5 +241,4 @@ export const RemoveClientRoleSchema = z.object({
   username: z.string().min(1, "Username is required"),
   rolename: z.string().min(1, "Role name to remove is required")
 });
-
 export type RemoveClientRoleType = z.infer<typeof RemoveClientRoleSchema>;

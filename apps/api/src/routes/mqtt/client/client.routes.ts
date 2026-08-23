@@ -3,6 +3,8 @@ import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 // Ajuste o import conforme a sua estrutura real:
 import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
 import {
+  AddClientRoleBodySchema,
+  AddClientRoleParamsSchema,
   CreateClientBodySchema,
   DeleteClientParamsSchema,
   DisableClientParamsSchema,
@@ -27,11 +29,6 @@ const PaginationQuerySchema = z.object({
 
 const ClientParamsSchema = z.object({
   username: z.string().min(1, "Username is required").max(100)
-});
-
-const AddClientRoleBodySchema = z.object({
-  rolename: z.string().min(1, "Role name is required"),
-  priority: z.number().optional()
 });
 
 const RemoveClientRoleBodySchema = z.object({
@@ -390,6 +387,10 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
         return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
       }
 
+      if (SYSTEM_CLIENTS.includes(params.username)) {
+        return reply.forbidden(`The client '${params.username}' is a system client and cannot be disabled.`);
+      }
+
       try {
         const [response] = (await fastify.mqtt.dynsec.setClientPassword({
           username: params.username,
@@ -422,19 +423,45 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       schema: {
         tags: ["MQTT Clients", "MQTT"],
         summary: "Adds a role to a client",
+        description: "Adds a role to a specific client in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
-        params: ClientParamsSchema,
+        params: AddClientRoleParamsSchema,
         body: AddClientRoleBodySchema,
+        response: { 200: ResponseMessageSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
       }
     },
     async (request, reply) => {
+      const { params, body } = request;
+
+      if (INVALID_CLIENT_NAME.includes(params.username)) {
+        return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
+      }
+
+      if (SYSTEM_CLIENTS.includes(params.username)) {
+        return reply.forbidden(`The client '${params.username}' is a system client and cannot be disabled.`);
+      }
+
       try {
-        const response = await fastify.mqtt.dynsec.addClientRole({
-          username: request.params.username,
-          rolename: request.body.rolename,
-          priority: request.body.priority
-        });
-        return response;
+        const [response] = (await fastify.mqtt.dynsec.addClientRole({
+          username: params.username,
+          rolename: body.rolename,
+          priority: body.priority
+        })).responses;
+
+        if (response?.error) {
+          if (response.error === "Client not found") {
+            return reply.notFound("Client not found");
+          }
+
+          if (response.error === "Role not found") {
+            return reply.notFound("Role not found");
+          }
+
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to add role to client");
+        }
+
+        return { message: "Role added to client" };
       } catch (error) {
         request.log.error(error, "MQTT Broker communication failure");
         return reply.internalServerError("Service temporarily unavailable");

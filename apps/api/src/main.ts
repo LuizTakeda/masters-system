@@ -56,14 +56,14 @@ app.setErrorHandler((
 ) => {
   request.log.error(error);
 
-  if (error.statusCode && error.statusCode < 500) {
+  if (error.statusCode) {
     return reply.send(error);
   }
 
   return reply.status(500).send({
     statusCode: 500,
     error: "Internal Server Error",
-    message: "Ocorreu um erro interno inesperado no servidor."
+    message: "Internal server error, contact staf"
   });
 });
 
