@@ -121,4 +121,15 @@ export const CreateClientBodySchema = z.object({
 });
 export type CreateClientBodyType = z.infer<typeof CreateClientBodySchema>;
 
+//##################################################
+// Delete Client 
+//##################################################
+
+// ### Params ###
+export const DeleteClientParamsSchema = z.object({
+  username: z.string().min(1, "Username is required").max(100)
+});
+export type DeleteClientParamsType = z.infer<typeof DeleteClientParamsSchema>;
+
+
 

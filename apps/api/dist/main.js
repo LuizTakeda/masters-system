@@ -396,6 +396,12 @@ const DeleteClientSchema = z.object({
   command: z.literal("deleteClient"),
   username: z.string().min(1, "Username is required")
 });
+const DeleteClientResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("deleteClient"),
+    error: z.string().optional()
+  }))
+});
 const EnableClientSchema = z.object({
   command: z.literal("enableClient"),
   username: z.string().min(1, "Username is required")
@@ -571,7 +577,8 @@ async function createDynamicSecurityAPI(client, messageEventStream) {
     return CreateClientResponseSchema.parse(response);
   };
   const deleteClient = async (payload) => {
-    return await sendCommands({ commands: [{ command: "deleteClient", ...payload }] });
+    const response = await sendCommands({ commands: [{ command: "deleteClient", ...payload }] });
+    return DeleteClientResponseSchema.parse(response);
   };
   const enableClient = async (payload) => {
     return await sendCommands({ commands: [{ command: "enableClient", ...payload }] });

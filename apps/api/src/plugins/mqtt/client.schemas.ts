@@ -131,6 +131,7 @@ export const CreateClientSchema = z.object({
 });
 export type CreateClientType = z.infer<typeof CreateClientSchema>;
 
+// ## Response
 export const CreateClientResponseSchema = z.object({
   responses: z.array(z.object({
     command: z.literal("createClient"),
@@ -146,8 +147,16 @@ export const DeleteClientSchema = z.object({
   command: z.literal("deleteClient"),
   username: z.string().min(1, "Username is required")
 });
-
 export type DeleteClientType = z.infer<typeof DeleteClientSchema>;
+
+// ## Response
+export const DeleteClientResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("deleteClient"),
+    error: z.string().optional()
+  }))
+});
+export type DeleteClientResponseType = z.infer<typeof DeleteClientResponseSchema>;
 
 // ==========================================
 // Enable Client

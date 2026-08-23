@@ -4,6 +4,7 @@ import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
 import {
   CreateClientBodySchema,
+  DeleteClientParamsSchema,
   GetClientNamesQuerySchema,
   GetClientNamesResponseSchema,
   GetClientParamsSchema,
@@ -226,6 +227,7 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
   );
 
   // ==========================================
+  // ==========================================
   // DELETE /:username (Delete Client)
   // ==========================================
   fastify.delete("/:username",
@@ -234,16 +236,38 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       schema: {
         tags: ["MQTT Clients", "MQTT"],
         summary: "Deletes a specific MQTT client",
+        description: "Deletes a specific client in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
-        params: ClientParamsSchema,
+        params: DeleteClientParamsSchema,
+        response: { 200: ResponseMessageSchema, 403: HttpErrorSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
       }
     },
     async (request, reply) => {
+      const { params } = request;
+
+      if (INVALID_CLIENT_NAME.includes(params.username)) {
+        return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
+      }
+
+      if (SYSTEM_CLIENTS.includes(params.username)) {
+        return reply.forbidden(`The client '${params.username}' is a system client and cannot be deleted.`);
+      }
+
       try {
-        const response = await fastify.mqtt.dynsec.deleteClient({
-          username: request.params.username
-        });
-        return response;
+        const [response] = (await fastify.mqtt.dynsec.deleteClient({
+          username: params.username
+        })).responses;
+
+        if (response?.error) {
+          if (response.error === "Client not found") {
+            return reply.notFound("Client not found");
+          }
+
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to delete client");
+        }
+
+        return { message: "Client deleted" };
       } catch (error) {
         request.log.error(error, "MQTT Broker communication failure");
         return reply.internalServerError("Service temporarily unavailable");
