@@ -1,6 +1,3 @@
-import { z } from "zod";
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-// Ajuste o import conforme a sua estrutura real:
 import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
 import {
   AddClientRoleBodySchema,
@@ -20,18 +17,7 @@ import {
   SetClientPasswordBodySchema,
   SetClientPasswordParamsSchema
 } from "@repo/types/endpoints/mqtt/client";
-
-// ==========================================
-// HTTP Schemas (Validação de Entrada)
-// ==========================================
-const PaginationQuerySchema = z.object({
-  count: z.coerce.number().min(-1).optional().default(-1),
-  offset: z.coerce.number().nonnegative().optional().default(0),
-});
-
-const ClientParamsSchema = z.object({
-  username: z.string().min(1, "Username is required").max(100)
-});
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 const SYSTEM_CLIENTS = [
   "admin",
@@ -52,6 +38,7 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       schema: {
         tags: ["MQTT Clients", "MQTT"],
         summary: "Lists MQTT clients with details",
+        description: "Retrieves a paginated list of all clients configured in Mosquitto's Dynamic Security. Requires administrator privileges.",
         security: [{ bearerAuth: [] }],
         querystring: GetClientsQuerySchema,
         response: {
@@ -69,7 +56,7 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
 
         if (response?.error) {
           request.log.error(`Mosquitto Error: ${response.error}`);
-          return reply.internalServerError("Fail to fetch clients");
+          return reply.internalServerError("Failed to fetch clients");
         }
 
         return response?.data;
@@ -89,6 +76,7 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       schema: {
         tags: ["MQTT Clients", "MQTT"],
         summary: "Lists MQTT client usernames",
+        description: "Retrieves a paginated list of client usernames.",
         security: [{ bearerAuth: [] }],
         querystring: GetClientNamesQuerySchema,
         response: {
@@ -106,7 +94,7 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
 
         if (response?.error) {
           request.log.error(`Mosquitto Error: ${response.error}`);
-          return reply.internalServerError("Fail to fetch clients");
+          return reply.internalServerError("Failed to fetch client names");
         }
 
         return response?.data;
@@ -132,14 +120,21 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
         response: {
           200: GetClientResponseSchema,
           404: HttpErrorSchema,
+          422: HttpErrorSchema,
           500: HttpErrorSchema
         }
       }
     },
     async (request, reply) => {
+      const { params } = request;
+
+      if (INVALID_CLIENT_NAME.includes(params.username)) {
+        return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
+      }
+
       try {
         const [response] = (await fastify.mqtt.dynsec.getClient({
-          username: request.params.username
+          username: params.username
         })).responses;
 
         if (response?.error) {
@@ -148,7 +143,7 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
           }
 
           request.log.error(`Mosquitto Error: ${response.error}`);
-          return reply.internalServerError("Fail to fetch client");
+          return reply.internalServerError("Failed to fetch client");
         }
 
         return response?.data;
@@ -171,7 +166,13 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
         description: "Creates a new client in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
         body: CreateClientBodySchema,
-        response: { 200: ResponseMessageSchema, 409: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
+        response: {
+          200: ResponseMessageSchema,
+          404: HttpErrorSchema,
+          409: HttpErrorSchema,
+          422: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
       }
     },
     async (request, reply) => {
@@ -222,7 +223,6 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
   );
 
   // ==========================================
-  // ==========================================
   // DELETE /:username (Delete Client)
   // ==========================================
   fastify.delete("/:username",
@@ -234,7 +234,13 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
         description: "Deletes a specific client in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
         params: DeleteClientParamsSchema,
-        response: { 200: ResponseMessageSchema, 403: HttpErrorSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
+        response: {
+          200: ResponseMessageSchema,
+          403: HttpErrorSchema,
+          404: HttpErrorSchema,
+          422: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
       }
     },
     async (request, reply) => {
@@ -282,7 +288,12 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
         description: "Enables a specific client in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
         params: EnableClientParamsSchema,
-        response: { 200: ResponseMessageSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
+        response: {
+          200: ResponseMessageSchema,
+          404: HttpErrorSchema,
+          422: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
       }
     },
     async (request, reply) => {
@@ -326,7 +337,13 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
         description: "Disables a specific client in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
         params: DisableClientParamsSchema,
-        response: { 200: ResponseMessageSchema, 403: HttpErrorSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
+        response: {
+          200: ResponseMessageSchema,
+          403: HttpErrorSchema,
+          404: HttpErrorSchema,
+          422: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
       }
     },
     async (request, reply) => {
@@ -375,7 +392,13 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
         security: [{ bearerAuth: [] }],
         params: SetClientPasswordParamsSchema,
         body: SetClientPasswordBodySchema,
-        response: { 200: ResponseMessageSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
+        response: {
+          200: ResponseMessageSchema,
+          403: HttpErrorSchema,
+          404: HttpErrorSchema,
+          422: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
       }
     },
     async (request, reply) => {
@@ -386,7 +409,7 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       }
 
       if (SYSTEM_CLIENTS.includes(params.username)) {
-        return reply.forbidden(`The client '${params.username}' is a system client and cannot be disabled.`);
+        return reply.forbidden(`The password for system client '${params.username}' cannot be modified directly.`);
       }
 
       try {
@@ -425,7 +448,13 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
         security: [{ bearerAuth: [] }],
         params: AddClientRoleParamsSchema,
         body: AddClientRoleBodySchema,
-        response: { 200: ResponseMessageSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
+        response: {
+          200: ResponseMessageSchema,
+          403: HttpErrorSchema,
+          404: HttpErrorSchema,
+          422: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
       }
     },
     async (request, reply) => {
@@ -436,7 +465,7 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       }
 
       if (SYSTEM_CLIENTS.includes(params.username)) {
-        return reply.forbidden(`The client '${params.username}' is a system client and cannot be disabled.`);
+        return reply.forbidden(`System client '${params.username}' roles cannot be modified directly.`);
       }
 
       try {
@@ -480,7 +509,13 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
         security: [{ bearerAuth: [] }],
         params: RemoveClientRoleParamsSchema,
         body: RemoveClientRoleBodySchema,
-        response: { 200: ResponseMessageSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
+        response: {
+          200: ResponseMessageSchema,
+          403: HttpErrorSchema,
+          404: HttpErrorSchema,
+          422: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
       }
     },
     async (request, reply) => {
@@ -491,7 +526,7 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       }
 
       if (SYSTEM_CLIENTS.includes(params.username)) {
-        return reply.forbidden(`The client '${params.username}' is a system client and cannot be disabled.`);
+        return reply.forbidden(`System client '${params.username}' roles cannot be modified directly.`);
       }
 
       try {
