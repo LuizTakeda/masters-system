@@ -141,6 +141,17 @@ export const EnableClientParamsSchema = z.object({
 });
 export type EnableClientParamsType = z.infer<typeof EnableClientParamsSchema>;
 
+//##################################################
+// Disable Client 
+//##################################################
+
+// ### Params ###
+export const DisableClientParamsSchema = z.object({
+  username: z.string().min(1, "Username is required").max(100)
+});
+export type DisableClientParamsType = z.infer<typeof DisableClientParamsSchema>;
+
+
 
 
 

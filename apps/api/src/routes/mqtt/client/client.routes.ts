@@ -5,6 +5,7 @@ import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
 import {
   CreateClientBodySchema,
   DeleteClientParamsSchema,
+  DisableClientParamsSchema,
   EnableClientParamsSchema,
   GetClientNamesQuerySchema,
   GetClientNamesResponseSchema,
@@ -329,16 +330,38 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       schema: {
         tags: ["MQTT Clients", "MQTT"],
         summary: "Disables an MQTT client",
+        description: "Disables a specific client in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
-        params: ClientParamsSchema,
+        params: DisableClientParamsSchema,
+        response: { 200: ResponseMessageSchema, 403: HttpErrorSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
       }
     },
     async (request, reply) => {
+      const { params } = request;
+
+      if (INVALID_CLIENT_NAME.includes(params.username)) {
+        return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
+      }
+
+      if (SYSTEM_CLIENTS.includes(params.username)) {
+        return reply.forbidden(`The client '${params.username}' is a system client and cannot be disabled.`);
+      }
+
       try {
-        const response = await fastify.mqtt.dynsec.disableClient({
-          username: request.params.username
-        });
-        return response;
+        const [response] = (await fastify.mqtt.dynsec.disableClient({
+          username: params.username
+        })).responses;
+
+        if (response?.error) {
+          if (response.error === "Client not found") {
+            return reply.notFound("Client not found");
+          }
+
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to disable client");
+        }
+
+        return { message: "Client disabled" };
       } catch (error) {
         request.log.error(error, "MQTT Broker communication failure");
         return reply.internalServerError("Service temporarily unavailable");

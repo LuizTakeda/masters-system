@@ -165,7 +165,6 @@ export const EnableClientSchema = z.object({
   command: z.literal("enableClient"),
   username: z.string().min(1, "Username is required")
 });
-
 export type EnableClientType = z.infer<typeof EnableClientSchema>;
 
 // ## Response
@@ -184,8 +183,16 @@ export const DisableClientSchema = z.object({
   command: z.literal("disableClient"),
   username: z.string().min(1, "Username is required")
 });
-
 export type DisableClientType = z.infer<typeof DisableClientSchema>;
+
+// ## Response
+export const DisableClientResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("disableClient"),
+    error: z.string().optional()
+  }))
+});
+export type DisableClientResponseType = z.infer<typeof DisableClientResponseSchema>;
 
 // ==========================================
 // Set Client Password
