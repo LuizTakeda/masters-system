@@ -3,6 +3,7 @@ import { AddRoleACLResponseSchema, AddRoleACLSchema, CreateRoleResponseSchema, C
 import z from "zod"
 import type { EventEmitter } from "events"
 import { AddClientRoleResponseSchema, AddClientRoleSchema, CreateClientResponseSchema, CreateClientSchema, DeleteClientResponseSchema, DeleteClientSchema, DisableClientResponseSchema, DisableClientSchema, EnableClientResponseSchema, EnableClientSchema, GetClientResponseSchema, GetClientSchema, ListClientsResponseSchema, ListClientsSchema, ListClientsVerboseResponseSchema, RemoveClientRoleResponseSchema, RemoveClientRoleSchema, SetClientPasswordResponseSchema, SetClientPasswordSchema, type AddClientRoleType, type CreateClientType, type DeleteClientType, type DisableClientType, type EnableClientType, type GetClientType, type ListClientsType, type RemoveClientRoleType, type SetClientPasswordType } from "./client.schemas.js";
+import { AddGroupClientResponseSchema, AddGroupClientSchema, AddGroupRoleResponseSchema, AddGroupRoleSchema, CreateGroupResponseSchema, CreateGroupSchema, DeleteGroupResponseSchema, DeleteGroupSchema, GetGroupResponseSchema, GetGroupSchema, ListGroupsResponseSchema, ListGroupsSchema, ListGroupsVerboseResponseSchema, RemoveGroupClientResponseSchema, RemoveGroupClientSchema, RemoveGroupRoleResponseSchema, RemoveGroupRoleSchema, type AddGroupClientType, type AddGroupRoleType, type CreateGroupType, type DeleteGroupType, type GetGroupType, type ListGroupsType, type RemoveGroupClientType, type RemoveGroupRoleType } from "./group.schemas.js";
 
 const CMD_TOPIC = "$CONTROL/dynamic-security/v1";
 const RESP_TOPIC = "$CONTROL/dynamic-security/v1/response";
@@ -27,7 +28,17 @@ const DSCommandsSchema = z.object({
       DisableClientSchema,
       SetClientPasswordSchema,
       AddClientRoleSchema,
-      RemoveClientRoleSchema
+      RemoveClientRoleSchema,
+
+      // Group Commands
+      ListGroupsSchema,
+      GetGroupSchema,
+      CreateGroupSchema,
+      DeleteGroupSchema,
+      AddGroupClientSchema,
+      RemoveGroupClientSchema,
+      AddGroupRoleSchema,
+      RemoveGroupRoleSchema
 
     ])
   )
@@ -256,6 +267,54 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     return RemoveClientRoleResponseSchema.parse(response);
   }
 
+  // ==========================================
+  // GROUPS
+  // ==========================================
+  const listGroups = async (payload: Omit<ListGroupsType, "command" | "verbose">) => {
+    const response = await sendCommands({ commands: [{ command: "listGroups", verbose: false, ...payload }] });
+    return ListGroupsResponseSchema.parse(response);
+  }
+
+  const listGroupsVerbose = async (payload: Omit<ListGroupsType, "command" | "verbose">) => {
+    const response = await sendCommands({ commands: [{ command: "listGroups", verbose: true, ...payload }] });
+    return ListGroupsVerboseResponseSchema.parse(response);
+  }
+
+  const getGroup = async (payload: Omit<GetGroupType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "getGroup", ...payload }] });
+    return GetGroupResponseSchema.parse(response);
+  }
+
+  const createGroup = async (payload: Omit<CreateGroupType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "createGroup", ...payload }] });
+    return CreateGroupResponseSchema.parse(response);
+  }
+
+  const deleteGroup = async (payload: Omit<DeleteGroupType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "deleteGroup", ...payload }] });
+    return DeleteGroupResponseSchema.parse(response);
+  }
+
+  const addGroupClient = async (payload: Omit<AddGroupClientType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "addGroupClient", ...payload }] });
+    return AddGroupClientResponseSchema.parse(response);
+  }
+
+  const removeGroupClient = async (payload: Omit<RemoveGroupClientType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "removeGroupClient", ...payload }] });
+    return RemoveGroupClientResponseSchema.parse(response);
+  }
+
+  const addGroupRole = async (payload: Omit<AddGroupRoleType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "addGroupRole", ...payload }] });
+    return AddGroupRoleResponseSchema.parse(response);
+  }
+
+  const removeGroupRole = async (payload: Omit<RemoveGroupRoleType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "removeGroupRole", ...payload }] });
+    return RemoveGroupRoleResponseSchema.parse(response);
+  }
+
   return {
     // Roles
     listRoles,
@@ -276,7 +335,18 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     disableClient,
     setClientPassword,
     addClientRole,
-    removeClientRole
+    removeClientRole,
+
+    // Groups
+    listGroups,
+    listGroupsVerbose,
+    getGroup,
+    createGroup,
+    deleteGroup,
+    addGroupClient,
+    removeGroupClient,
+    addGroupRole,
+    removeGroupRole
   }
 }
 

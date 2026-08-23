@@ -6,8 +6,8 @@ import z from "zod";
 
 // ### Query ###
 export const GetClientsQuerySchema = z.object({
-  count: z.coerce.number().min(-1).describe("-1 for all, or a positive integer for a limited count"),
-  offset: z.coerce.number().nonnegative().describe("Where in the list to start")
+  count: z.coerce.number().min(-1).describe("-1 for all, or a positive integer for a limited count").default(-1),
+  offset: z.coerce.number().nonnegative().describe("Where in the list to start").default(0)
 });
 export type GetClientsQueryType = z.infer<typeof GetClientsQuerySchema>;
 
@@ -48,8 +48,8 @@ export type GetClientsResponseType = z.infer<typeof GetClientsResponseSchema>;
 
 // ### Query ###
 export const GetClientNamesQuerySchema = z.object({
-  count: z.coerce.number().min(-1).describe("-1 for all, or a positive integer for a limited count"),
-  offset: z.coerce.number().nonnegative().describe("Where in the list to start")
+  count: z.coerce.number().min(-1).describe("-1 for all, or a positive integer for a limited count").default(-1),
+  offset: z.coerce.number().nonnegative().describe("Where in the list to start").default(0)
 });
 export type GetClientNamesQueryType = z.infer<typeof GetClientsQuerySchema>;
 
