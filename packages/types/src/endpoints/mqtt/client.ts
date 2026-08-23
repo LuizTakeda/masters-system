@@ -131,5 +131,16 @@ export const DeleteClientParamsSchema = z.object({
 });
 export type DeleteClientParamsType = z.infer<typeof DeleteClientParamsSchema>;
 
+//##################################################
+// Enable Client 
+//##################################################
+
+// ### Params ###
+export const EnableClientParamsSchema = z.object({
+  username: z.string().min(1, "Username is required").max(100)
+});
+export type EnableClientParamsType = z.infer<typeof EnableClientParamsSchema>;
+
+
 
 

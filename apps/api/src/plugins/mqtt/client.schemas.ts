@@ -168,6 +168,15 @@ export const EnableClientSchema = z.object({
 
 export type EnableClientType = z.infer<typeof EnableClientSchema>;
 
+// ## Response
+export const EnableClientResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("enableClient"),
+    error: z.string().optional()
+  }))
+});
+export type EnableClientResponseType = z.infer<typeof EnableClientResponseSchema>;
+
 // ==========================================
 // Disable Client
 // ==========================================

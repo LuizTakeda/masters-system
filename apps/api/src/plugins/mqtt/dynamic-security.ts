@@ -2,7 +2,7 @@ import mqtt from "mqtt"
 import { AddRoleACLResponseSchema, AddRoleACLSchema, CreateRoleResponseSchema, CreateRoleSchema, DeleteRoleResponseSchema, DeleteRoleSchema, GetRoleResponseSchema, GetRoleSchema, ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, RemoveRoleACLResponseSchema, RemoveRoleACLSchema, type AddRoleACLType, type CreateRoleType, type DeleteRoleType, type GetRoleType, type ListRolesType, type RemoveRoleACLType } from "./role.schemas.js"
 import z from "zod"
 import type { EventEmitter } from "events"
-import { AddClientRoleSchema, CreateClientResponseSchema, CreateClientSchema, DeleteClientResponseSchema, DeleteClientSchema, DisableClientSchema, EnableClientSchema, GetClientResponseSchema, GetClientSchema, ListClientsResponseSchema, ListClientsSchema, ListClientsVerboseResponseSchema, RemoveClientRoleSchema, SetClientPasswordSchema, type AddClientRoleType, type CreateClientType, type DeleteClientType, type DisableClientType, type EnableClientType, type GetClientType, type ListClientsType, type RemoveClientRoleType, type SetClientPasswordType } from "./client.schemas.js";
+import { AddClientRoleSchema, CreateClientResponseSchema, CreateClientSchema, DeleteClientResponseSchema, DeleteClientSchema, DisableClientSchema, EnableClientResponseSchema, EnableClientSchema, GetClientResponseSchema, GetClientSchema, ListClientsResponseSchema, ListClientsSchema, ListClientsVerboseResponseSchema, RemoveClientRoleSchema, SetClientPasswordSchema, type AddClientRoleType, type CreateClientType, type DeleteClientType, type DisableClientType, type EnableClientType, type GetClientType, type ListClientsType, type RemoveClientRoleType, type SetClientPasswordType } from "./client.schemas.js";
 
 const CMD_TOPIC = "$CONTROL/dynamic-security/v1";
 const RESP_TOPIC = "$CONTROL/dynamic-security/v1/response";
@@ -232,7 +232,8 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
   }
 
   const enableClient = async (payload: Omit<EnableClientType, "command">) => {
-    return await sendCommands({ commands: [{ command: "enableClient", ...payload }] });
+    const response = await sendCommands({ commands: [{ command: "enableClient", ...payload }] });
+    return EnableClientResponseSchema.parse(response);
   }
 
   const disableClient = async (payload: Omit<DisableClientType, "command">) => {
