@@ -219,10 +219,12 @@ function AdminSidebarGroup() {
   );
 }
 
-function ProjectSidebarGroup(_props: { project: string }) {
+function ProjectSidebarGroup(props: { project: string }) {
+
+
   return (
     <SidebarGroup>
-
+      <>{props.project}</>
     </SidebarGroup>
   );
 }

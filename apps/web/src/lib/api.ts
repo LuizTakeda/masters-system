@@ -25,7 +25,7 @@ async function AuthRefresh(): Promise<boolean> {
   try {
     const response = await fetch("/api/auth/refresh");
     return response.ok;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -78,9 +78,10 @@ export async function apiFetch<TSchema extends z.ZodType, TData = z.infer<TSchem
     // Attempts to make the main request
     return await doRequest();
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as Partial<HttpErrorType> | null | undefined;
     // If it's not an authentication error (401), just pass the error along for the component to handle
-    if (error?.statusCode !== 401) {
+    if (err?.statusCode !== 401) {
       throw error;
     }
 
