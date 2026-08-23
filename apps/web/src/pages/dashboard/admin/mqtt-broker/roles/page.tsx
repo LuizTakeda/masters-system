@@ -2,12 +2,15 @@ import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { useRoles } from "@/hooks/mqtt/use-roles";
 import { toast } from "@/components/ui/toast";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import type { GetRolesResponseType } from "@repo/types/endpoints/mqtt/role";
 import type { HttpErrorType } from "@repo/types/commons";
 import { RolesTable } from "./components/roles-table";
 import { RolesPagination } from "./components/roles-pagination";
 import { RoleDetailsSheet } from "./components/role-details-sheet";
 import { DeleteRoleDialog } from "./components/delete-role-dialog";
+import { CreateRoleDialog } from "./components/create-role-dialog";
 
 type RoleItem = GetRolesResponseType["roles"][number];
 
@@ -17,6 +20,8 @@ export default function RolePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<RoleItem | null>(null);
+
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState<RoleItem | null>(null);
@@ -69,6 +74,14 @@ export default function RolePage() {
 
   return (
     <div className="space-y-4">
+      {/* Top action bar above table */}
+      <div className="flex items-center justify-end">
+        <Button onClick={() => setIsCreateOpen(true)} className="gap-1.5">
+          <Plus className="size-4" />
+          <span>Create Role</span>
+        </Button>
+      </div>
+
       <div className="rounded-lg border bg-card text-card-foreground shadow-xs overflow-hidden">
         <RolesTable
           roles={roles}
@@ -91,6 +104,11 @@ export default function RolePage() {
         role={selectedRole}
         open={isOpen}
         onOpenChange={setIsOpen}
+      />
+
+      <CreateRoleDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
       />
 
       <DeleteRoleDialog
