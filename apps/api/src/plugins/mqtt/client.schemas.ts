@@ -71,8 +71,44 @@ export const GetClientSchema = z.object({
   command: z.literal("getClient"),
   username: z.string().min(1, "Username is required")
 });
-
 export type GetClientType = z.infer<typeof GetClientSchema>;
+
+// ## Response
+export const GetClientResponseSchema = z.object({
+  responses: z.array(
+    z.object({
+      command: z.literal("getClient"),
+      error: z.string().optional(),
+      data: z.object({
+        client: z.object({
+          username: z.string(),
+          clientid: z.string().optional(),
+          textname: z.string().optional(),
+          textdescription: z.string().optional(),
+          disabled: z.boolean().optional(),
+          roles: z.array(
+            z.object({
+              rolename: z.string(),
+              priority: z.number().int().optional()
+            })
+          ).optional().default([]),
+          groups: z.array(
+            z.object({
+              groupname: z.string(),
+              priority: z.number().int().optional()
+            })
+          ).optional().default([]),
+          connections: z.array(
+            z.object({
+              address: z.string()
+            })
+          ).optional().default([])
+        })
+      }).optional()
+    })
+  )
+});
+export type GetClientResponseType = z.infer<typeof GetClientResponseSchema>;
 
 // ==========================================
 // Create Client

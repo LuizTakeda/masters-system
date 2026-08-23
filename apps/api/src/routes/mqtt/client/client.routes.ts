@@ -2,7 +2,14 @@ import { z } from "zod";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 // Ajuste o import conforme a sua estrutura real:
 import { HttpErrorSchema } from "@repo/types/commons";
-import { GetClientNamesQuerySchema, GetClientNamesResponseSchema, GetClientsQuerySchema, GetClientsResponseSchema } from "@repo/types/endpoints/mqtt/client";
+import {
+  GetClientNamesQuerySchema,
+  GetClientNamesResponseSchema,
+  GetClientParamsSchema,
+  GetClientResponseSchema,
+  GetClientsQuerySchema,
+  GetClientsResponseSchema
+} from "@repo/types/endpoints/mqtt/client";
 
 // ==========================================
 // HTTP Schemas (Validação de Entrada)
@@ -132,16 +139,32 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       schema: {
         tags: ["MQTT Clients", "MQTT"],
         summary: "Retrieves a specific MQTT client",
+        description: "Fetches detailed configuration of a specific MQTT client.",
         security: [{ bearerAuth: [] }],
-        params: ClientParamsSchema,
+        params: GetClientParamsSchema,
+        response: {
+          200: GetClientResponseSchema,
+          404: HttpErrorSchema,
+          500: HttpErrorSchema
+        }
       }
     },
     async (request, reply) => {
       try {
-        const response = await fastify.mqtt.dynsec.getClient({
+        const [response] = (await fastify.mqtt.dynsec.getClient({
           username: request.params.username
-        });
-        return response;
+        })).responses;
+
+        if (response?.error) {
+          if (response.error === "Client not found") {
+            return reply.notFound("Client not found");
+          }
+
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Fail to fetch client");
+        }
+
+        return response?.data;
       } catch (error) {
         request.log.error(error, "MQTT Broker communication failure");
         return reply.internalServerError("Service temporarily unavailable");
