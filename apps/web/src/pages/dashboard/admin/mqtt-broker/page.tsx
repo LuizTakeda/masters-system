@@ -1,11 +1,6 @@
-import PageHeader from "../../components/page-header";
-
-export default function AdminMQTTBrokerPage(){
+export default function ClientsPage() {
   return (
     <main>
-      <PageHeader>
-        Admin / MQTT Broker
-      </PageHeader>
     </main>
   );
 }
