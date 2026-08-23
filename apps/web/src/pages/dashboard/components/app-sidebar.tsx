@@ -1,4 +1,4 @@
-import { EllipsisVerticalIcon, LogOutIcon, Home, ServerIcon, RadioReceiver, ChevronsUpDown } from "lucide-react";
+import { EllipsisVerticalIcon, LogOutIcon, Home, ServerIcon, RadioReceiver, ChevronsUpDown, Shield } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "../../../components/ui/sidebar";
 import { useMe } from "../../../hooks/use-me";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
@@ -145,6 +145,7 @@ export function ContextSwitcher({
   contexts: string[],
   setContext: (context: string) => void
 }) {
+  const { isMobile } = useSidebar();
 
   if (currentContext === null) {
     return null;
@@ -160,18 +161,27 @@ export function ContextSwitcher({
                 size="lg"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate text-xs">Context</span>
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shrink-0">
+                  {currentContext === "system-admin" ? (
+                    <Shield className="size-4" />
+                  ) : (
+                    <span className="uppercase text-[11px] font-bold">
+                      {currentContext.replace(/^project-?/, "").slice(0, 2) || "PR"}
+                    </span>
+                  )}
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                  <span className="truncate text-xs text-muted-foreground">Context</span>
                   <span className="truncate font-medium">{currentContext}</span>
                 </div>
-                <ChevronsUpDown className="ml-auto" />
+                <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
               </SidebarMenuButton>
             }
           />
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             align="start"
-            side="bottom"
+            side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
             <DropdownMenuGroup>
@@ -182,9 +192,20 @@ export function ContextSwitcher({
                 <DropdownMenuItem
                   key={context}
                   onClick={() => setContext(context)}
-                  className="gap-2 p-2"
+                  className="gap-2 p-2 cursor-pointer"
                 >
-                  {context}
+                  <div className="flex size-6 items-center justify-center rounded-md border bg-background shrink-0">
+                    {context === "system-admin" ? (
+                      <Shield className="size-3.5" />
+                    ) : (
+                      <span className="uppercase text-[9px] font-bold">
+                        {context.replace(/^project-?/, "").slice(0, 2) || "PR"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{context}</span>
+                  </div>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>
