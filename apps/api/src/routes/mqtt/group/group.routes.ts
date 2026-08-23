@@ -19,6 +19,10 @@ import {
 } from "@repo/types/endpoints/mqtt/group";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
+const SYSTEM_GROUPS = [
+  "admin",
+];
+
 const INVALID_GROUP_NAME = [
   "names"
 ];
@@ -178,6 +182,10 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
         return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
       }
 
+      if (SYSTEM_GROUPS.includes(body.groupname)) {
+        return reply.conflict("Cannot create a group with a reserved system name.");
+      }
+
       try {
         const [response] = (await fastify.mqtt.dynsec.createGroup({
           groupname: body.groupname,
@@ -219,6 +227,7 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
         params: DeleteGroupParamsSchema,
         response: {
           200: ResponseMessageSchema,
+          403: HttpErrorSchema,
           404: HttpErrorSchema,
           422: HttpErrorSchema,
           500: HttpErrorSchema
@@ -230,6 +239,10 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
 
       if (INVALID_GROUP_NAME.includes(params.groupname)) {
         return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
+      }
+
+      if (SYSTEM_GROUPS.includes(params.groupname)) {
+        return reply.forbidden(`The group '${params.groupname}' is a system group and cannot be deleted.`);
       }
 
       try {
@@ -269,7 +282,9 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
         body: AddGroupClientBodySchema,
         response: {
           200: ResponseMessageSchema,
+          403: HttpErrorSchema,
           404: HttpErrorSchema,
+          409: HttpErrorSchema,
           422: HttpErrorSchema,
           500: HttpErrorSchema
         }
@@ -280,6 +295,10 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
 
       if (INVALID_GROUP_NAME.includes(params.groupname)) {
         return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
+      }
+
+      if (SYSTEM_GROUPS.includes(params.groupname)) {
+        return reply.forbidden(`System group '${params.groupname}' clients cannot be modified directly.`);
       }
 
       try {
@@ -298,7 +317,7 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
             return reply.notFound("Client not found");
           }
 
-          if (response.error === "Client is already in this group") {
+          if (response.error === "Client is already in this group" || response.error === "Client already in group") {
             return reply.conflict("Client is already in this group");
           }
 
@@ -329,6 +348,7 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
         body: RemoveGroupClientBodySchema,
         response: {
           200: ResponseMessageSchema,
+          403: HttpErrorSchema,
           404: HttpErrorSchema,
           422: HttpErrorSchema,
           500: HttpErrorSchema
@@ -342,6 +362,10 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
         return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
       }
 
+      if (SYSTEM_GROUPS.includes(params.groupname)) {
+        return reply.forbidden(`System group '${params.groupname}' clients cannot be modified directly.`);
+      }
+
       try {
         const [response] = (await fastify.mqtt.dynsec.removeGroupClient({
           groupname: params.groupname,
@@ -353,7 +377,7 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
             return reply.notFound("Group not found");
           }
 
-          if (response.error === "Client not found" || response.error === "Client not in group") {
+          if (response.error === "Client not found" || response.error === "Client not in group" || response.error === "Client is not in group") {
             return reply.notFound(response.error);
           }
 
@@ -384,7 +408,9 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
         body: AddGroupRoleBodySchema,
         response: {
           200: ResponseMessageSchema,
+          403: HttpErrorSchema,
           404: HttpErrorSchema,
+          409: HttpErrorSchema,
           422: HttpErrorSchema,
           500: HttpErrorSchema
         }
@@ -395,6 +421,10 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
 
       if (INVALID_GROUP_NAME.includes(params.groupname)) {
         return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
+      }
+
+      if (SYSTEM_GROUPS.includes(params.groupname)) {
+        return reply.forbidden(`System group '${params.groupname}' roles cannot be modified directly.`);
       }
 
       try {
@@ -413,8 +443,8 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
             return reply.notFound("Role not found");
           }
 
-          if (response.error === "Group is already in this role") {
-            return reply.conflict("Group is already in this role");
+          if (response.error === "Group is already in this role" || response.error === "Role already in group") {
+            return reply.conflict(response.error);
           }
 
           request.log.error(`Mosquitto Error: ${response.error}`);
@@ -444,6 +474,7 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
         body: RemoveGroupRoleBodySchema,
         response: {
           200: ResponseMessageSchema,
+          403: HttpErrorSchema,
           404: HttpErrorSchema,
           422: HttpErrorSchema,
           500: HttpErrorSchema
@@ -457,6 +488,10 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
         return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
       }
 
+      if (SYSTEM_GROUPS.includes(params.groupname)) {
+        return reply.forbidden(`System group '${params.groupname}' roles cannot be modified directly.`);
+      }
+
       try {
         const [response] = (await fastify.mqtt.dynsec.removeGroupRole({
           groupname: params.groupname,
@@ -468,7 +503,7 @@ const groupRoutes: FastifyPluginAsyncZod = async (fastify) => {
             return reply.notFound("Group not found");
           }
 
-          if (response.error === "Role not found" || response.error === "Role not associated with group") {
+          if (response.error === "Role not found" || response.error === "Role not associated with group" || response.error === "Role not in group") {
             return reply.notFound(response.error);
           }
 
