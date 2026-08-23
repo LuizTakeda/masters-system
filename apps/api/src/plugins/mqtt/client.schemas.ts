@@ -202,8 +202,16 @@ export const SetClientPasswordSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "New password is required")
 });
-
 export type SetClientPasswordType = z.infer<typeof SetClientPasswordSchema>;
+
+// ## Response
+export const SetClientPasswordResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("setClientPassword"),
+    error: z.string().optional()
+  }))
+});
+export type SetClientPasswordResponseType = z.infer<typeof SetClientPasswordResponseSchema>;
 
 // ==========================================
 // Add Client Role

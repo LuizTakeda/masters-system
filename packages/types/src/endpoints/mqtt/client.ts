@@ -151,7 +151,19 @@ export const DisableClientParamsSchema = z.object({
 });
 export type DisableClientParamsType = z.infer<typeof DisableClientParamsSchema>;
 
+//##################################################
+// Set Client Password 
+//##################################################
 
+// ### Params ###
+export const SetClientPasswordParamsSchema = z.object({
+  username: z.string().min(1, "Username is required").max(100)
+});
+export type SetClientPasswordParamsType = z.infer<typeof SetClientPasswordParamsSchema>;
 
-
+// ### Body ###
+export const SetClientPasswordBodySchema = z.object({
+  password: z.string().min(1, "New password is required")
+});
+export type SetClientPasswordBodyType = z.infer<typeof SetClientPasswordBodySchema>;
 

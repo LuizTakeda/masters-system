@@ -12,7 +12,9 @@ import {
   GetClientParamsSchema,
   GetClientResponseSchema,
   GetClientsQuerySchema,
-  GetClientsResponseSchema
+  GetClientsResponseSchema,
+  SetClientPasswordBodySchema,
+  SetClientPasswordParamsSchema
 } from "@repo/types/endpoints/mqtt/client";
 
 // ==========================================
@@ -25,10 +27,6 @@ const PaginationQuerySchema = z.object({
 
 const ClientParamsSchema = z.object({
   username: z.string().min(1, "Username is required").max(100)
-});
-
-const SetPasswordBodySchema = z.object({
-  password: z.string().min(1, "New password is required")
 });
 
 const AddClientRoleBodySchema = z.object({
@@ -378,18 +376,36 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       schema: {
         tags: ["MQTT Clients", "MQTT"],
         summary: "Updates an MQTT client's password",
+        description: "Updates the password of a specific client in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
-        params: ClientParamsSchema,
-        body: SetPasswordBodySchema,
+        params: SetClientPasswordParamsSchema,
+        body: SetClientPasswordBodySchema,
+        response: { 200: ResponseMessageSchema, 404: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
       }
     },
     async (request, reply) => {
+      const { params, body } = request;
+
+      if (INVALID_CLIENT_NAME.includes(params.username)) {
+        return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
+      }
+
       try {
-        const response = await fastify.mqtt.dynsec.setClientPassword({
-          username: request.params.username,
-          password: request.body.password
-        });
-        return response;
+        const [response] = (await fastify.mqtt.dynsec.setClientPassword({
+          username: params.username,
+          password: body.password
+        })).responses;
+
+        if (response?.error) {
+          if (response.error === "Client not found") {
+            return reply.notFound("Client not found");
+          }
+
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to set client password");
+        }
+
+        return { message: "Password updated" };
       } catch (error) {
         request.log.error(error, "MQTT Broker communication failure");
         return reply.internalServerError("Service temporarily unavailable");
