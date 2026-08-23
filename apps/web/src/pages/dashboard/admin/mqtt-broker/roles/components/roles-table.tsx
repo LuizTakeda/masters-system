@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Info, Shield } from "lucide-react";
+import { Info, Shield, Trash2 } from "lucide-react";
 import type { GetRolesResponseType } from "@repo/types/endpoints/mqtt/role";
 
 type RoleItem = GetRolesResponseType["roles"][number];
@@ -18,16 +18,23 @@ type Props = {
   isLoading: boolean;
   isError: unknown;
   onSelectRole: (role: RoleItem) => void;
+  onDeleteRole: (role: RoleItem) => void;
 };
 
-export function RolesTable({ roles, isLoading, isError, onSelectRole }: Props) {
+export function RolesTable({
+  roles,
+  isLoading,
+  isError,
+  onSelectRole,
+  onDeleteRole,
+}: Props) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-1/3">Nome</TableHead>
-          <TableHead>Descrição</TableHead>
-          <TableHead className="w-24 text-right">Ações</TableHead>
+          <TableHead className="w-1/3">Name</TableHead>
+          <TableHead>Description</TableHead>
+          <TableHead className="w-24 text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -41,20 +48,20 @@ export function RolesTable({ roles, isLoading, isError, onSelectRole }: Props) {
                 <Skeleton className="h-5 w-48" />
               </TableCell>
               <TableCell className="text-right">
-                <Skeleton className="h-8 w-8 ml-auto rounded-md" />
+                <Skeleton className="h-8 w-16 ml-auto rounded-md" />
               </TableCell>
             </TableRow>
           ))
         ) : isError ? (
           <TableRow>
             <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-              Erro ao carregar roles.
+              Failed to load roles.
             </TableCell>
           </TableRow>
         ) : !roles || roles.length === 0 ? (
           <TableRow>
             <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-              Nenhuma role encontrada.
+              No roles found.
             </TableCell>
           </TableRow>
         ) : (
@@ -65,18 +72,30 @@ export function RolesTable({ roles, isLoading, isError, onSelectRole }: Props) {
                 <span>{role.rolename}</span>
               </TableCell>
               <TableCell className="text-muted-foreground text-sm">
-                {role.textdescription || <span className="italic text-muted-foreground/50">Sem descrição</span>}
+                {role.textdescription || <span className="italic text-muted-foreground/50">No description</span>}
               </TableCell>
               <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => onSelectRole(role)}
-                  title="Ver detalhes"
-                >
-                  <Info className="size-4" />
-                  <span className="sr-only">Ver detalhes de {role.rolename}</span>
-                </Button>
+                <div className="flex items-center justify-end gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => onSelectRole(role)}
+                    title="View details"
+                  >
+                    <Info className="size-4" />
+                    <span className="sr-only">View details for {role.rolename}</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => onDeleteRole(role)}
+                    title="Delete role"
+                    className="text-destructive/80 hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="size-4" />
+                    <span className="sr-only">Delete role {role.rolename}</span>
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))
@@ -85,4 +104,3 @@ export function RolesTable({ roles, isLoading, isError, onSelectRole }: Props) {
     </Table>
   );
 }
-

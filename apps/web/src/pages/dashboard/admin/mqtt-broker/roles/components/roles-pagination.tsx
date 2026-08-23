@@ -24,7 +24,7 @@ export function RolesPagination({
 
       <div className="flex items-center gap-2">
         <span>
-          Página {page} de {totalPages}
+          Page {page} of {totalPages}
         </span>
         <div className="flex items-center gap-1">
           <Button
@@ -34,7 +34,7 @@ export function RolesPagination({
             disabled={page <= 1 || isLoading}
           >
             <ChevronLeft className="size-3.5" />
-            <span className="sr-only">Página anterior</span>
+            <span className="sr-only">Previous page</span>
           </Button>
           <Button
             variant="outline"
@@ -43,11 +43,10 @@ export function RolesPagination({
             disabled={page >= totalPages || isLoading}
           >
             <ChevronRight className="size-3.5" />
-            <span className="sr-only">Próxima página</span>
+            <span className="sr-only">Next page</span>
           </Button>
         </div>
       </div>
     </div>
   );
 }
-

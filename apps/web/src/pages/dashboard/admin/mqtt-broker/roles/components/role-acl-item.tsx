@@ -18,16 +18,15 @@ export function RoleAclItem({ acl }: Props) {
               : "bg-destructive/10 text-destructive"
           }`}
         >
-          {acl.allow ? "Permitir" : "Negar"}
+          {acl.allow ? "Allow" : "Deny"}
         </span>
       </div>
       <div className="text-muted-foreground font-mono">
-        Tópico: <span className="text-foreground">{acl.topic}</span>
+        Topic: <span className="text-foreground">{acl.topic}</span>
       </div>
       <div className="text-muted-foreground">
-        Prioridade: <span className="text-foreground">{acl.priority}</span>
+        Priority: <span className="text-foreground">{acl.priority}</span>
       </div>
     </div>
   );
 }
-

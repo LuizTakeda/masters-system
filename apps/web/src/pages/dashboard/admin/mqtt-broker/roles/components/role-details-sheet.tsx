@@ -31,7 +31,7 @@ export function RoleDetailsSheet({ role, open, onOpenChange }: Props) {
                 <div className="min-w-0">
                   <SheetTitle className="truncate">{role.rolename}</SheetTitle>
                   <SheetDescription className="truncate">
-                    {role.textdescription || "Sem descrição definida."}
+                    {role.textdescription || "No description provided."}
                   </SheetDescription>
                 </div>
               </div>
@@ -40,12 +40,12 @@ export function RoleDetailsSheet({ role, open, onOpenChange }: Props) {
             <div className="space-y-4 text-sm">
               <div className="rounded-md border p-3 bg-muted/20 space-y-2">
                 <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Configurações Gerais
+                  General Settings
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span>Wildcard Subscriptions:</span>
                   <span className="font-medium">
-                    {role.allowwildcardsubs ? "Permitido" : "Padrão / Desabilitado"}
+                    {role.allowwildcardsubs ? "Allowed" : "Disabled / Default"}
                   </span>
                 </div>
               </div>
@@ -53,13 +53,13 @@ export function RoleDetailsSheet({ role, open, onOpenChange }: Props) {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Regras de ACL ({role.acls?.length ?? 0})
+                    ACL Rules ({role.acls?.length ?? 0})
                   </span>
                 </div>
 
                 {!role.acls || role.acls.length === 0 ? (
                   <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-                    Nenhuma regra de ACL configurada nesta role.
+                    No ACL rules configured for this role.
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -76,4 +76,3 @@ export function RoleDetailsSheet({ role, open, onOpenChange }: Props) {
     </Sheet>
   );
 }
-
