@@ -1,8 +1,9 @@
 import { z } from "zod";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 // Ajuste o import conforme a sua estrutura real:
-import { HttpErrorSchema } from "@repo/types/commons";
+import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
 import {
+  CreateClientBodySchema,
   GetClientNamesQuerySchema,
   GetClientNamesResponseSchema,
   GetClientParamsSchema,
@@ -21,16 +22,6 @@ const PaginationQuerySchema = z.object({
 
 const ClientParamsSchema = z.object({
   username: z.string().min(1, "Username is required").max(100)
-});
-
-const CreateClientBodySchema = z.object({
-  username: z.string().min(1).max(100),
-  password: z.string().min(1),
-  clientid: z.string().optional(),
-  textname: z.string().optional(),
-  textdescription: z.string().optional(),
-  groups: z.array(z.object({ groupname: z.string(), priority: z.number().optional() })).optional(),
-  roles: z.array(z.object({ rolename: z.string(), priority: z.number().optional() })).optional()
 });
 
 const SetPasswordBodySchema = z.object({
@@ -181,22 +172,52 @@ const clientRoutes: FastifyPluginAsyncZod = async (fastify) => {
       schema: {
         tags: ["MQTT Clients", "MQTT"],
         summary: "Creates a new MQTT client",
+        description: "Creates a new client in Mosquitto's Dynamic Security.",
         security: [{ bearerAuth: [] }],
         body: CreateClientBodySchema,
+        response: { 200: ResponseMessageSchema, 409: HttpErrorSchema, 422: HttpErrorSchema, 500: HttpErrorSchema }
       }
     },
     async (request, reply) => {
+      const { body } = request;
+
+      if (INVALID_CLIENT_NAME.includes(body.username)) {
+        return reply.unprocessableEntity("The word 'names' is a reserved keyword.");
+      }
+
+      if (SYSTEM_CLIENTS.includes(body.username)) {
+        return reply.conflict("Cannot create a client with a reserved system name.");
+      }
+
       try {
-        const response = await fastify.mqtt.dynsec.createClient({
-          username: request.body.username,
-          password: request.body.password,
-          clientid: request.body.clientid,
-          textname: request.body.textname,
-          textdescription: request.body.textdescription,
-          groups: request.body.groups,
-          roles: request.body.roles,
-        });
-        return response;
+        const [response] = (await fastify.mqtt.dynsec.createClient({
+          username: body.username,
+          password: body.password,
+          clientid: body.clientid,
+          textname: body.textname,
+          textdescription: body.textdescription,
+          groups: body.groups,
+          roles: body.roles,
+        })).responses;
+
+        if (response?.error) {
+          if (response.error === "Client already exists") {
+            return reply.conflict("Client already exists");
+          }
+
+          if (response.error === "Group not found") {
+            return reply.notFound("Group not found");
+          }
+
+          if (response.error === "Role not found") {
+            return reply.notFound("Role not found");
+          }
+
+          request.log.error(`Mosquitto Error: ${response.error}`);
+          return reply.internalServerError("Failed to create client");
+        }
+
+        return { message: "Client created" };
       } catch (error) {
         request.log.error(error, "MQTT Broker communication failure");
         return reply.internalServerError("Service temporarily unavailable");

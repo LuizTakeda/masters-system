@@ -99,3 +99,26 @@ export const GetClientResponseSchema = z.object({
 });
 export type GetClientResponseType = z.infer<typeof GetClientResponseSchema>;
 
+//##################################################
+// Create Client 
+//##################################################
+
+// ### Body ###
+export const CreateClientBodySchema = z.object({
+  username: z.string().min(1, "Username is required").max(100),
+  password: z.string().min(1, "Password is required"),
+  clientid: z.string().optional(),
+  textname: z.string().optional(),
+  textdescription: z.string().optional(),
+  groups: z.array(z.object({
+    groupname: z.string().min(1),
+    priority: z.number().optional()
+  })).optional(),
+  roles: z.array(z.object({
+    rolename: z.string().min(1),
+    priority: z.number().optional()
+  })).optional()
+});
+export type CreateClientBodyType = z.infer<typeof CreateClientBodySchema>;
+
+

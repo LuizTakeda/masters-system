@@ -2,7 +2,7 @@ import mqtt from "mqtt"
 import { AddRoleACLResponseSchema, AddRoleACLSchema, CreateRoleResponseSchema, CreateRoleSchema, DeleteRoleResponseSchema, DeleteRoleSchema, GetRoleResponseSchema, GetRoleSchema, ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, RemoveRoleACLResponseSchema, RemoveRoleACLSchema, type AddRoleACLType, type CreateRoleType, type DeleteRoleType, type GetRoleType, type ListRolesType, type RemoveRoleACLType } from "./role.schemas.js"
 import z from "zod"
 import type { EventEmitter } from "events"
-import { AddClientRoleSchema, CreateClientSchema, DeleteClientSchema, DisableClientSchema, EnableClientSchema, GetClientResponseSchema, GetClientSchema, ListClientsResponseSchema, ListClientsSchema, ListClientsVerboseResponseSchema, RemoveClientRoleSchema, SetClientPasswordSchema, type AddClientRoleType, type CreateClientType, type DeleteClientType, type DisableClientType, type EnableClientType, type GetClientType, type ListClientsType, type RemoveClientRoleType, type SetClientPasswordType } from "./client.schemas.js";
+import { AddClientRoleSchema, CreateClientResponseSchema, CreateClientSchema, DeleteClientSchema, DisableClientSchema, EnableClientSchema, GetClientResponseSchema, GetClientSchema, ListClientsResponseSchema, ListClientsSchema, ListClientsVerboseResponseSchema, RemoveClientRoleSchema, SetClientPasswordSchema, type AddClientRoleType, type CreateClientType, type DeleteClientType, type DisableClientType, type EnableClientType, type GetClientType, type ListClientsType, type RemoveClientRoleType, type SetClientPasswordType } from "./client.schemas.js";
 
 const CMD_TOPIC = "$CONTROL/dynamic-security/v1";
 const RESP_TOPIC = "$CONTROL/dynamic-security/v1/response";
@@ -222,7 +222,8 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
   }
 
   const createClient = async (payload: Omit<CreateClientType, "command">) => {
-    return await sendCommands({ commands: [{ command: "createClient", ...payload }] });
+    const response = await sendCommands({ commands: [{ command: "createClient", ...payload }] });
+    return CreateClientResponseSchema.parse(response);
   }
 
   const deleteClient = async (payload: Omit<DeleteClientType, "command">) => {

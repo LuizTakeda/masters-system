@@ -129,8 +129,15 @@ export const CreateClientSchema = z.object({
     priority: z.number().optional()
   })).optional()
 });
-
 export type CreateClientType = z.infer<typeof CreateClientSchema>;
+
+export const CreateClientResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("createClient"),
+    error: z.string().optional()
+  }))
+});
+export type CreateClientResponseType = z.infer<typeof CreateClientResponseSchema>;
 
 // ==========================================
 // Delete Client
