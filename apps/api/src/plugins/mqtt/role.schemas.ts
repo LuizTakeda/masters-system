@@ -1,6 +1,8 @@
 import z, { number } from "zod";
 
-// ### listRoles ###
+// ==========================================
+// List Roles
+// ==========================================
 
 export const ListRolesSchema = z.object({
   command: z.literal("listRoles"),
@@ -8,10 +10,9 @@ export const ListRolesSchema = z.object({
   count: z.number().min(-1).max(50),
   offset: z.number().nonnegative()
 })
-
 export type ListRolesType = z.infer<typeof ListRolesSchema>;
 
-// Verbose Response 
+// ## Verbose Response 
 export const ListRolesResponseSchema = z.object({
   responses: z.array(
     z.object({
@@ -24,10 +25,9 @@ export const ListRolesResponseSchema = z.object({
     })
   )
 });
-
 export type ListRolesResponseType = z.infer<typeof ListRolesResponseSchema>;
 
-// Verbose Response 
+// ## Verbose Response 
 export const ListRolesResponseVerboseSchema = z.object({
   responses: z.array(
     z.object({
@@ -50,19 +50,19 @@ export const ListRolesResponseVerboseSchema = z.object({
     })
   )
 });
-
 export type ListRolesResponseVerboseType = z.infer<typeof ListRolesResponseVerboseSchema>;
 
-// ### getRole ###
+// ==========================================
+// Get Role
+// ==========================================
 
 export const GetRoleSchema = z.object({
   command: z.literal("getRole"),
   rolename: z.string().min(1).max(100),
 });
-
 export type GetRoleType = z.infer<typeof GetRoleSchema>;
 
-// Response
+// ## Response
 export const GetRoleResponseSchema = z.object({
   responses: z.array(
     z.object({
@@ -84,10 +84,11 @@ export const GetRoleResponseSchema = z.object({
     })
   )
 });
-
 export type GetRoleResponseType = z.infer<typeof GetRoleResponseSchema>;
 
-// ### createRole ###
+// ==========================================
+// Create Role
+// ==========================================
 
 export const CreateRoleSchema = z.object({
   command: z.literal("createRole"),
@@ -104,36 +105,37 @@ export const CreateRoleSchema = z.object({
 
 export type CreateRoleType = z.infer<typeof CreateRoleSchema>;
 
-// Response
+// ## Response
 export const CreateRoleResponseSchema = z.object({
   responses: z.array(z.object({
     command: z.literal("createRole"),
     error: z.string().optional()
   }))
 });
-
 export type CreateRoleResponseType = z.infer<typeof CreateRoleResponseSchema>;
 
-// ### deleteRole ###
+// ==========================================
+// Delete Role
+// ==========================================
 
 export const DeleteRoleSchema = z.object({
   command: z.literal("deleteRole"),
   rolename: z.string().min(1).max(100)
 });
-
 export type DeleteRoleType = z.infer<typeof DeleteRoleSchema>;
 
-// Response
+// ## Response
 export const DeleteRoleResponseSchema = z.object({
   responses: z.array(z.object({
     command: z.literal("deleteRole"),
     error: z.string().optional()
   }))
 });
-
 export type DeleteRoleResponseType = z.infer<typeof DeleteRoleResponseSchema>;
 
-// ### addRoleACL ###
+// ==========================================
+// Add Role ACL
+// ==========================================
 
 export const AddRoleACLSchema = z.object({
   command: z.literal("addRoleACL"),
@@ -143,20 +145,20 @@ export const AddRoleACLSchema = z.object({
   priority: z.number().describe("Rule priority"),
   allow: z.boolean().describe("If true, allows access; if false, explicitly denies it"),
 });
-
 export type AddRoleACLType = z.infer<typeof AddRoleACLSchema>;
 
-// Response
+// ## Response
 export const AddRoleACLResponseSchema = z.object({
   responses: z.array(z.object({
     command: z.literal("addRoleACL"),
     error: z.string().optional()
   }))
 });
-
 export type AddRoleACLResponseType = z.infer<typeof AddRoleACLResponseSchema>;
 
-// ### removeRoleACL ###
+// ==========================================
+// Remove Role ACL
+// ==========================================
 
 export const RemoveRoleACLSchema = z.object({
   command: z.literal("removeRoleACL"),
@@ -164,15 +166,13 @@ export const RemoveRoleACLSchema = z.object({
   acltype: z.enum(["publishClientSend", "publishClientReceive", "subscribePattern", "unsubscribePattern"]).describe("Permission type"),
   topic: z.string().min(1).describe("MQTT topic filter"),
 });
-
 export type RemoveRoleACLType = z.infer<typeof RemoveRoleACLSchema>;
 
-// Response
+// ## Response
 export const RemoveRoleACLResponseSchema = z.object({
   responses: z.array(z.object({
     command: z.literal("removeRoleACL"),
     error: z.string().optional()
   }))
 });
-
 export type RemoveRoleACLResponseType = z.infer<typeof RemoveRoleACLResponseSchema>;

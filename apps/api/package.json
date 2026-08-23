@@ -2,7 +2,7 @@
   "name": "api",
   "version": "1.0.0",
   "description": "",
-  "main": "./dist/index.js",
+  "main": "./dist/main.js",
   "scripts": {
     "dev": "NODE_OPTIONS='--use-system-ca' tsx watch src/main.ts | pino-prettier",
     "build": "pkgroll",

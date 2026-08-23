@@ -2,6 +2,7 @@ import mqtt from "mqtt"
 import { AddRoleACLResponseSchema, AddRoleACLSchema, CreateRoleResponseSchema, CreateRoleSchema, DeleteRoleResponseSchema, DeleteRoleSchema, GetRoleResponseSchema, GetRoleSchema, ListRolesResponseSchema, ListRolesResponseVerboseSchema, ListRolesSchema, RemoveRoleACLResponseSchema, RemoveRoleACLSchema, type AddRoleACLType, type CreateRoleType, type DeleteRoleType, type GetRoleType, type ListRolesType, type RemoveRoleACLType } from "./role.schemas.js"
 import z from "zod"
 import type { EventEmitter } from "events"
+import { AddClientRoleResponseSchema, AddClientRoleSchema, CreateClientResponseSchema, CreateClientSchema, DeleteClientResponseSchema, DeleteClientSchema, DisableClientResponseSchema, DisableClientSchema, EnableClientResponseSchema, EnableClientSchema, GetClientResponseSchema, GetClientSchema, ListClientsResponseSchema, ListClientsSchema, ListClientsVerboseResponseSchema, RemoveClientRoleResponseSchema, RemoveClientRoleSchema, SetClientPasswordResponseSchema, SetClientPasswordSchema, type AddClientRoleType, type CreateClientType, type DeleteClientType, type DisableClientType, type EnableClientType, type GetClientType, type ListClientsType, type RemoveClientRoleType, type SetClientPasswordType } from "./client.schemas.js";
 
 const CMD_TOPIC = "$CONTROL/dynamic-security/v1";
 const RESP_TOPIC = "$CONTROL/dynamic-security/v1/response";
@@ -9,12 +10,25 @@ const RESP_TOPIC = "$CONTROL/dynamic-security/v1/response";
 const DSCommandsSchema = z.object({
   commands: z.array(
     z.discriminatedUnion("command", [
+      // Role Commands
       ListRolesSchema,
       GetRoleSchema,
       CreateRoleSchema,
       DeleteRoleSchema,
       AddRoleACLSchema,
-      RemoveRoleACLSchema
+      RemoveRoleACLSchema,
+
+      // Client Commands
+      ListClientsSchema,
+      GetClientSchema,
+      CreateClientSchema,
+      DeleteClientSchema,
+      EnableClientSchema,
+      DisableClientSchema,
+      SetClientPasswordSchema,
+      AddClientRoleSchema,
+      RemoveClientRoleSchema
+
     ])
   )
 });
@@ -136,11 +150,13 @@ async function createCommandsQueue(client: mqtt.MqttClient, messageEventStream: 
 export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageEventStream: EventEmitter) {
   const { sendCommands } = await createCommandsQueue(client, messageEventStream);
 
+  // ==========================================
+  // ROLES Commands
+  // ==========================================
   const listRoles = async (payload: Omit<ListRolesType, "command" | "verbose">) => {
     const response = await sendCommands({
       commands: [{ command: "listRoles", verbose: false, ...payload }]
     });
-
     return ListRolesResponseSchema.parse(response);
   }
 
@@ -148,7 +164,6 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     const response = await sendCommands({
       commands: [{ command: "listRoles", verbose: true, ...payload }]
     });
-
     return ListRolesResponseVerboseSchema.parse(response);
   }
 
@@ -156,7 +171,6 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     const response = await sendCommands({
       commands: [{ command: "getRole", ...payload }]
     });
-
     return GetRoleResponseSchema.parse(response);
   }
 
@@ -172,7 +186,6 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     const response = await sendCommands({
       commands: [{ command: "deleteRole", ...payload }]
     });
-
     return DeleteRoleResponseSchema.parse(response);
   }
 
@@ -180,7 +193,6 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     const response = await sendCommands({
       commands: [{ command: "addRoleACL", ...payload }]
     });
-
     return AddRoleACLResponseSchema.parse(response);
   }
 
@@ -188,19 +200,83 @@ export async function createDynamicSecurityAPI(client: mqtt.MqttClient, messageE
     const response = await sendCommands({
       commands: [{ command: "removeRoleACL", ...payload }]
     });
-
     return RemoveRoleACLResponseSchema.parse(response);
   }
 
+  // ==========================================
+  // CLIENTS
+  // ==========================================
+  const listClients = async (payload: Omit<ListClientsType, "command" | "verbose">) => {
+    const response = await sendCommands({ commands: [{ command: "listClients", verbose: false, ...payload }] });
+    return ListClientsResponseSchema.parse(response);
+  }
+
+  const listClientsVerbose = async (payload: Omit<ListClientsType, "command" | "verbose">) => {
+    const response = await sendCommands({ commands: [{ command: "listClients", verbose: true, ...payload }] });
+    return ListClientsVerboseResponseSchema.parse(response);
+  }
+
+  const getClient = async (payload: Omit<GetClientType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "getClient", ...payload }] });
+    return GetClientResponseSchema.parse(response);
+  }
+
+  const createClient = async (payload: Omit<CreateClientType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "createClient", ...payload }] });
+    return CreateClientResponseSchema.parse(response);
+  }
+
+  const deleteClient = async (payload: Omit<DeleteClientType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "deleteClient", ...payload }] });
+    return DeleteClientResponseSchema.parse(response);
+  }
+
+  const enableClient = async (payload: Omit<EnableClientType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "enableClient", ...payload }] });
+    return EnableClientResponseSchema.parse(response);
+  }
+
+  const disableClient = async (payload: Omit<DisableClientType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "disableClient", ...payload }] });
+    return DisableClientResponseSchema.parse(response);
+  }
+
+  const setClientPassword = async (payload: Omit<SetClientPasswordType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "setClientPassword", ...payload }] });
+    return SetClientPasswordResponseSchema.parse(response);
+  }
+
+  const addClientRole = async (payload: Omit<AddClientRoleType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "addClientRole", ...payload }] });
+    return AddClientRoleResponseSchema.parse(response);
+  }
+
+  const removeClientRole = async (payload: Omit<RemoveClientRoleType, "command">) => {
+    const response = await sendCommands({ commands: [{ command: "removeClientRole", ...payload }] });
+    return RemoveClientRoleResponseSchema.parse(response);
+  }
+
   return {
-    // ### Roles ###
+    // Roles
     listRoles,
     listRolesVerbose,
     getRole,
     createRole,
     deleteRole,
     addRoleACL,
-    removeRoleACL
+    removeRoleACL,
+
+    // Clients
+    listClients,
+    listClientsVerbose,
+    getClient,
+    createClient,
+    deleteClient,
+    enableClient,
+    disableClient,
+    setClientPassword,
+    addClientRole,
+    removeClientRole
   }
 }
 
