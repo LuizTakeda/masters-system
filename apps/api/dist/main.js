@@ -457,6 +457,154 @@ const RemoveClientRoleResponseSchema = z.object({
   }))
 });
 
+const ListGroupsSchema = z.object({
+  command: z.literal("listGroups"),
+  verbose: z.boolean().optional().default(false),
+  count: z.number().min(-1).describe("-1 for all, or a positive integer for a limited count"),
+  offset: z.number().nonnegative().describe("Where in the list to start")
+});
+const ListGroupsResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("listGroups"),
+    error: z.string().optional(),
+    data: z.object({
+      totalCount: z.number(),
+      groups: z.array(z.string())
+    }).optional()
+  }))
+});
+const ListGroupsVerboseResponseSchema = z.object({
+  responses: z.array(
+    z.object({
+      command: z.literal("listGroups"),
+      error: z.string().optional(),
+      data: z.object({
+        totalCount: z.number().int().nonnegative(),
+        groups: z.array(
+          z.object({
+            groupname: z.string(),
+            textname: z.string().optional(),
+            textdescription: z.string().optional(),
+            roles: z.array(
+              z.object({
+                rolename: z.string(),
+                priority: z.number().int().optional()
+              })
+            ).optional().default([]),
+            clients: z.array(
+              z.object({
+                username: z.string(),
+                priority: z.number().int().optional()
+              })
+            ).optional().default([])
+          })
+        ).optional().default([])
+      }).optional()
+    })
+  )
+});
+const GetGroupSchema = z.object({
+  command: z.literal("getGroup"),
+  groupname: z.string().min(1, "Group name is required")
+});
+const GetGroupResponseSchema = z.object({
+  responses: z.array(
+    z.object({
+      command: z.literal("getGroup"),
+      error: z.string().optional(),
+      data: z.object({
+        group: z.object({
+          groupname: z.string(),
+          textname: z.string().optional(),
+          textdescription: z.string().optional(),
+          roles: z.array(
+            z.object({
+              rolename: z.string(),
+              priority: z.number().int().optional()
+            })
+          ).optional().default([]),
+          clients: z.array(
+            z.object({
+              username: z.string(),
+              priority: z.number().int().optional()
+            })
+          ).optional().default([])
+        })
+      }).optional()
+    })
+  )
+});
+const CreateGroupSchema = z.object({
+  command: z.literal("createGroup"),
+  groupname: z.string().min(1, "Group name is required"),
+  roles: z.array(z.object({
+    rolename: z.string().min(1),
+    priority: z.number().optional()
+  })).optional()
+});
+const CreateGroupResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("createGroup"),
+    error: z.string().optional()
+  }))
+});
+const DeleteGroupSchema = z.object({
+  command: z.literal("deleteGroup"),
+  groupname: z.string().min(1, "Group name is required")
+});
+const DeleteGroupResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("deleteGroup"),
+    error: z.string().optional()
+  }))
+});
+const AddGroupClientSchema = z.object({
+  command: z.literal("addGroupClient"),
+  groupname: z.string().min(1, "Group name is required"),
+  username: z.string().min(1, "Username is required"),
+  priority: z.number().optional().describe("Priority of the group for the client")
+});
+const AddGroupClientResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("addGroupClient"),
+    error: z.string().optional()
+  }))
+});
+const RemoveGroupClientSchema = z.object({
+  command: z.literal("removeGroupClient"),
+  groupname: z.string().min(1, "Group name is required"),
+  username: z.string().min(1, "Username is required")
+});
+const RemoveGroupClientResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("removeGroupClient"),
+    error: z.string().optional()
+  }))
+});
+const AddGroupRoleSchema = z.object({
+  command: z.literal("addGroupRole"),
+  groupname: z.string().min(1, "Group name is required"),
+  rolename: z.string().min(1, "Role name is required"),
+  priority: z.number().optional().describe("Optional priority")
+});
+const AddGroupRoleResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("addGroupRole"),
+    error: z.string().optional()
+  }))
+});
+const RemoveGroupRoleSchema = z.object({
+  command: z.literal("removeGroupRole"),
+  groupname: z.string().min(1, "Group name is required"),
+  rolename: z.string().min(1, "Role name is required")
+});
+const RemoveGroupRoleResponseSchema = z.object({
+  responses: z.array(z.object({
+    command: z.literal("removeGroupRole"),
+    error: z.string().optional()
+  }))
+});
+
 const CMD_TOPIC = "$CONTROL/dynamic-security/v1";
 const RESP_TOPIC = "$CONTROL/dynamic-security/v1/response";
 const DSCommandsSchema = z$1.object({
@@ -478,7 +626,16 @@ const DSCommandsSchema = z$1.object({
       DisableClientSchema,
       SetClientPasswordSchema,
       AddClientRoleSchema,
-      RemoveClientRoleSchema
+      RemoveClientRoleSchema,
+      // Group Commands
+      ListGroupsSchema,
+      GetGroupSchema,
+      CreateGroupSchema,
+      DeleteGroupSchema,
+      AddGroupClientSchema,
+      RemoveGroupClientSchema,
+      AddGroupRoleSchema,
+      RemoveGroupRoleSchema
     ])
   )
 });
@@ -630,6 +787,42 @@ async function createDynamicSecurityAPI(client, messageEventStream) {
     const response = await sendCommands({ commands: [{ command: "removeClientRole", ...payload }] });
     return RemoveClientRoleResponseSchema.parse(response);
   };
+  const listGroups = async (payload) => {
+    const response = await sendCommands({ commands: [{ command: "listGroups", verbose: false, ...payload }] });
+    return ListGroupsResponseSchema.parse(response);
+  };
+  const listGroupsVerbose = async (payload) => {
+    const response = await sendCommands({ commands: [{ command: "listGroups", verbose: true, ...payload }] });
+    return ListGroupsVerboseResponseSchema.parse(response);
+  };
+  const getGroup = async (payload) => {
+    const response = await sendCommands({ commands: [{ command: "getGroup", ...payload }] });
+    return GetGroupResponseSchema.parse(response);
+  };
+  const createGroup = async (payload) => {
+    const response = await sendCommands({ commands: [{ command: "createGroup", ...payload }] });
+    return CreateGroupResponseSchema.parse(response);
+  };
+  const deleteGroup = async (payload) => {
+    const response = await sendCommands({ commands: [{ command: "deleteGroup", ...payload }] });
+    return DeleteGroupResponseSchema.parse(response);
+  };
+  const addGroupClient = async (payload) => {
+    const response = await sendCommands({ commands: [{ command: "addGroupClient", ...payload }] });
+    return AddGroupClientResponseSchema.parse(response);
+  };
+  const removeGroupClient = async (payload) => {
+    const response = await sendCommands({ commands: [{ command: "removeGroupClient", ...payload }] });
+    return RemoveGroupClientResponseSchema.parse(response);
+  };
+  const addGroupRole = async (payload) => {
+    const response = await sendCommands({ commands: [{ command: "addGroupRole", ...payload }] });
+    return AddGroupRoleResponseSchema.parse(response);
+  };
+  const removeGroupRole = async (payload) => {
+    const response = await sendCommands({ commands: [{ command: "removeGroupRole", ...payload }] });
+    return RemoveGroupRoleResponseSchema.parse(response);
+  };
   return {
     // Roles
     listRoles,
@@ -649,7 +842,17 @@ async function createDynamicSecurityAPI(client, messageEventStream) {
     disableClient,
     setClientPassword,
     addClientRole,
-    removeClientRole
+    removeClientRole,
+    // Groups
+    listGroups,
+    listGroupsVerbose,
+    getGroup,
+    createGroup,
+    deleteGroup,
+    addGroupClient,
+    removeGroupClient,
+    addGroupRole,
+    removeGroupRole
   };
 }
 
