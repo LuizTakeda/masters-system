@@ -1,9 +1,9 @@
-import { Cpu, Wifi, EllipsisVerticalIcon, LogOutIcon, Home, ServerIcon, RadioReceiver, ChevronsUpDown, Plus } from "lucide-react";
+import { EllipsisVerticalIcon, LogOutIcon, Home, ServerIcon, RadioReceiver, ChevronsUpDown } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "../../../components/ui/sidebar";
 import { useMe } from "../../../hooks/use-me";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
-import React, { useEffect, useMemo, useState } from "react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
 export function AppSidebar() {
@@ -219,7 +219,7 @@ function AdminSidebarGroup() {
   );
 }
 
-function ProjectSidebarGroup(props: { project: string }) {
+function ProjectSidebarGroup(_props: { project: string }) {
   return (
     <SidebarGroup>
 
