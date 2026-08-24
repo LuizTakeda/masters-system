@@ -3,7 +3,6 @@ import { Home, Layers } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -14,11 +13,9 @@ type Props = {
 };
 
 export function NavProject({ project }: Props) {
-  const projectLabel = project.replace(/^project-?/, "").toUpperCase() || project;
-
   const projectItems = [
     {
-      title: "Project Home",
+      title: "Home",
       url: `/dashboard/${encodeURIComponent(project)}`,
       icon: Home,
       end: true,
@@ -33,7 +30,6 @@ export function NavProject({ project }: Props) {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{projectLabel}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           {projectItems.map((item) => {

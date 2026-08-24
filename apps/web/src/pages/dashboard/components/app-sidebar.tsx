@@ -43,7 +43,7 @@ export function AppSidebar() {
     }
 
     const projectMatch = pathname.match(/^\/dashboard\/([^/]+)/);
-    if (projectMatch && projectMatch[1]) {
+    if (projectMatch && projectMatch[1] && projectMatch[1] !== "admin") {
       return decodeURIComponent(projectMatch[1]);
     }
 
@@ -65,7 +65,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain />
+        {currentContext === null && <NavMain />}
         {currentContext === "system-admin" && <NavAdmin />}
         {currentContext && currentContext !== "system-admin" && (
           <NavProject project={currentContext} />

@@ -25,7 +25,7 @@ export default function MqttBrokerLayout() {
             const Icon = tab.icon;
             return (
               <NavLink
-                key={tab.to || "clients"}
+                key={tab.to || "analytics"}
                 to={tab.to}
                 end={tab.end}
                 className={({ isActive }) =>

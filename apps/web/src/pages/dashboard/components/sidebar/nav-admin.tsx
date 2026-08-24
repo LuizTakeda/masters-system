@@ -3,7 +3,6 @@ import { Home, Server } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -27,7 +26,6 @@ const adminItems = [
 export function NavAdmin() {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Administration</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           {adminItems.map((item) => {
