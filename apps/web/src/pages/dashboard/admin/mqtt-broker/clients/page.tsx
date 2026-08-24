@@ -8,7 +8,7 @@ import { Plus } from "lucide-react";
 import type { GetClientsResponseType } from "@repo/types/endpoints/mqtt/client";
 import type { HttpErrorType } from "@repo/types/commons";
 import { ClientsTable } from "./components/clients-table";
-import { ClientsPagination } from "./components/clients-pagination";
+import { TablePagination } from "../components/table-pagination";
 import { ClientDetailsDialog } from "./components/client-details-dialog";
 import { DeleteClientDialog } from "./components/delete-client-dialog";
 import { CreateClientDialog } from "./components/create-client-dialog";
@@ -99,12 +99,13 @@ export default function ClientsPage() {
           onDeleteClient={handleOpenDelete}
         />
 
-        <ClientsPagination
+        <TablePagination
           page={page}
           totalPages={totalPages}
           totalCount={totalCount}
           isLoading={isLoading}
           onPageChange={handlePageChange}
+          resourceName={{ singular: "client", plural: "clients" }}
         />
       </div>
 
