@@ -84,7 +84,7 @@ export default function GroupsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-base font-semibold tracking-tight text-foreground">Groups</h2>
-          <p className="text-xs text-muted-foreground">Manage client groups.</p>
+          <p className="text-xs text-muted-foreground">Manage MQTT groups.</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} size="sm" className="gap-1.5">
           <Plus className="size-4" />
