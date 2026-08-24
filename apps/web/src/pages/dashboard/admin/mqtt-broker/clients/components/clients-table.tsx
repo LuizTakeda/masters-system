@@ -32,11 +32,12 @@ export function ClientsTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-1/4">Username</TableHead>
-          <TableHead className="w-1/4">Client ID / Name</TableHead>
-          <TableHead className="max-w-[280px]">Roles</TableHead>
-          <TableHead className="w-28 text-center">Session</TableHead>
-          <TableHead className="w-24 text-right">Actions</TableHead>
+          <TableHead className="w-1/5">Username</TableHead>
+          <TableHead className="w-1/5">Client ID / Name</TableHead>
+          <TableHead className="max-w-[180px]">Groups</TableHead>
+          <TableHead className="max-w-[180px]">Roles</TableHead>
+          <TableHead className="w-24 text-center">Session</TableHead>
+          <TableHead className="w-20 text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -50,10 +51,13 @@ export function ClientsTable({
                 </div>
               </TableCell>
               <TableCell>
-                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-5 w-28" />
               </TableCell>
               <TableCell>
-                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-5 w-28" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-5 w-28" />
               </TableCell>
               <TableCell className="text-center">
                 <Skeleton className="h-5 w-16 mx-auto rounded-full" />
@@ -65,13 +69,13 @@ export function ClientsTable({
           ))
         ) : isError ? (
           <TableRow>
-            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+            <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
               Failed to load clients.
             </TableCell>
           </TableRow>
         ) : !clients || clients.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+            <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
               No clients found.
             </TableCell>
           </TableRow>
@@ -125,9 +129,26 @@ export function ClientsTable({
                   )}
                 </TableCell>
 
-                <TableCell className="max-w-[280px]">
+                <TableCell className="max-w-[180px]">
+                  {client.groups && client.groups.length > 0 ? (
+                    <div className="flex flex-wrap gap-1 max-h-14 max-w-[180px] overflow-y-auto pr-1">
+                      {client.groups.map((g) => (
+                        <span
+                          key={g.groupname}
+                          className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-secondary text-secondary-foreground border shrink-0 whitespace-nowrap"
+                        >
+                          {g.groupname}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="italic text-muted-foreground/50 text-xs">No groups</span>
+                  )}
+                </TableCell>
+
+                <TableCell className="max-w-[180px]">
                   {client.roles && client.roles.length > 0 ? (
-                    <div className="flex flex-wrap gap-1 max-h-14 max-w-[280px] overflow-y-auto pr-1">
+                    <div className="flex flex-wrap gap-1 max-h-14 max-w-[180px] overflow-y-auto pr-1">
                       {client.roles.map((r) => (
                         <span
                           key={r.rolename}

@@ -10,8 +10,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
-import { useClient } from "@/hooks/mqtt/use-clients";
+import { invalidateClients, useClient } from "@/hooks/mqtt/use-clients";
 import { useRoleNames } from "@/hooks/mqtt/use-roles";
+import { invalidateGroups, useGroupNames } from "@/hooks/mqtt/use-groups";
+import {
+  addGroupClient,
+  removeGroupClient,
+} from "@/services/mqtt/group.service";
 import {
   Eye,
   EyeOff,
@@ -23,6 +28,7 @@ import {
   Trash2,
   User,
   UserCheck,
+  Users,
   UserX,
   X,
 } from "lucide-react";
@@ -32,6 +38,7 @@ import type {
   GetClientsResponseType,
 } from "@repo/types/endpoints/mqtt/client";
 import { RolePicker } from "./role-picker";
+import { GroupPicker } from "./group-picker";
 
 type ClientSummaryItem = GetClientsResponseType["clients"][number];
 type ClientDetailItem = GetClientResponseType["client"];
@@ -53,6 +60,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
     removeRole,
   } = useClient(open ? username : null);
   const { roleNames } = useRoleNames();
+  const { groupNames } = useGroupNames();
 
   const activeClient: ClientSummaryItem | ClientDetailItem | null = freshClient ?? client;
   const isDisabled = activeClient && "disabled" in activeClient ? Boolean(activeClient.disabled) : false;
@@ -64,6 +72,11 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
   const [newPassword, setNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+
+  // Groups state
+  const [isAddingGroup, setIsAddingGroup] = useState(false);
+  const [isSubmittingGroup, setIsSubmittingGroup] = useState(false);
+  const [removingGroupName, setRemovingGroupName] = useState<string | null>(null);
 
   // Add Role state
   const [isAddingRole, setIsAddingRole] = useState(false);
@@ -136,6 +149,53 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
     }
   };
 
+  const handleAddClientToGroup = async (groupName: string) => {
+    if (!username) return;
+    try {
+      setIsSubmittingGroup(true);
+      await addGroupClient(groupName, { username });
+      await Promise.all([invalidateClients(), invalidateGroups()]);
+      toast.add({
+        title: "Added to group",
+        description: `Client "${username}" was added to group "${groupName}".`,
+        type: "success",
+      });
+      setIsAddingGroup(false);
+    } catch (error) {
+      const err = error as Partial<HttpErrorType>;
+      toast.add({
+        title: "Failed to add to group",
+        description: err.message || "Could not add client to group.",
+        type: "error",
+      });
+    } finally {
+      setIsSubmittingGroup(false);
+    }
+  };
+
+  const handleRemoveClientFromGroup = async (groupName: string) => {
+    if (!username) return;
+    try {
+      setRemovingGroupName(groupName);
+      await removeGroupClient(groupName, { username });
+      await Promise.all([invalidateClients(), invalidateGroups()]);
+      toast.add({
+        title: "Removed from group",
+        description: `Client "${username}" was removed from group "${groupName}".`,
+        type: "success",
+      });
+    } catch (error) {
+      const err = error as Partial<HttpErrorType>;
+      toast.add({
+        title: "Failed to remove from group",
+        description: err.message || "Could not remove client from group.",
+        type: "error",
+      });
+    } finally {
+      setRemovingGroupName(null);
+    }
+  };
+
   const handleAddRoleToClient = async (roleName: string) => {
     try {
       setIsSubmittingRole(true);
@@ -179,7 +239,10 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
     }
   };
 
-  // Filter assigned roles
+  // Filter assigned groups & roles
+  const assignedGroupNames = activeClient?.groups?.map((g) => g.groupname) ?? [];
+  const hasUnassignedGroups = (groupNames?.length ?? 0) > assignedGroupNames.length;
+
   const assignedRoleNames = activeClient?.roles?.map((r) => r.rolename) ?? [];
   const hasUnassignedRoles = (roleNames?.length ?? 0) > assignedRoleNames.length;
 
@@ -273,11 +336,94 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
               )}
             </div>
 
+            {/* Assigned Groups Section */}
+            <div className="space-y-2.5 pt-2 border-t text-xs">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold uppercase tracking-wider text-muted-foreground text-[11px]">
+                  Assigned Groups ({activeClient.groups?.length ?? 0})
+                </h4>
+                {!isAddingGroup && hasUnassignedGroups && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAddingGroup(true)}
+                    className="h-6 text-xs gap-1"
+                  >
+                    <Plus className="size-3" />
+                    <span>Add to Group</span>
+                  </Button>
+                )}
+              </div>
+
+              {/* Inline Group Picker */}
+              {isAddingGroup && (
+                <div className="p-3 rounded-lg border bg-muted/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-foreground text-[11px]">Search & Add to Group</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => setIsAddingGroup(false)}
+                      disabled={isSubmittingGroup}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
+
+                  <GroupPicker
+                    selectedGroups={assignedGroupNames}
+                    onSelectGroup={handleAddClientToGroup}
+                    mode="single"
+                    placeholder="Search group..."
+                    disabled={isSubmittingGroup}
+                  />
+                </div>
+              )}
+
+              {/* Groups List */}
+              {!activeClient.groups || activeClient.groups.length === 0 ? (
+                <div className="rounded-md border border-dashed p-3 text-center text-muted-foreground">
+                  Client does not belong to any groups.
+                </div>
+              ) : (
+                <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                  {activeClient.groups.map((g) => (
+                    <div
+                      key={g.groupname}
+                      className="flex items-center justify-between p-2 rounded-md border bg-background"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Users className="size-3.5 text-primary shrink-0" />
+                        <span className="font-medium text-foreground">{g.groupname}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => handleRemoveClientFromGroup(g.groupname)}
+                        disabled={removingGroupName === g.groupname}
+                        className="text-destructive/70 hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                        title="Remove from group"
+                      >
+                        {removingGroupName === g.groupname ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-3.5" />
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Assigned Roles Section */}
             <div className="space-y-2.5 pt-2 border-t text-xs">
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold uppercase tracking-wider text-muted-foreground text-[11px]">
-                  Assigned Roles ({activeClient.roles?.length ?? 0})
+                  Direct Roles ({activeClient.roles?.length ?? 0})
                 </h4>
                 {!isAddingRole && hasUnassignedRoles && (
                   <Button
@@ -322,7 +468,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
               {/* Roles List */}
               {!activeClient.roles || activeClient.roles.length === 0 ? (
                 <div className="rounded-md border border-dashed p-3 text-center text-muted-foreground">
-                  No roles assigned to this client.
+                  No direct roles assigned to this client.
                 </div>
               ) : (
                 <div className="space-y-1.5 max-h-36 overflow-y-auto">
@@ -341,7 +487,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
                         size="icon-xs"
                         onClick={() => handleRemoveRoleFromClient(r.rolename)}
                         disabled={removingRoleName === r.rolename}
-                        className="text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                        className="text-destructive/70 hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                         title="Remove role"
                       >
                         {removingRoleName === r.rolename ? (

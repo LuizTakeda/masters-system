@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { useClients } from "@/hooks/mqtt/use-clients";
 import { useRoleNames } from "@/hooks/mqtt/use-roles";
+import { useGroupNames } from "@/hooks/mqtt/use-groups";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import type { GetClientsResponseType } from "@repo/types/endpoints/mqtt/client";
 import type { HttpErrorType } from "@repo/types/commons";
 import { ClientsTable } from "./components/clients-table";
-import { ClientsPagination } from "./components/clients-pagination";
+import { TablePagination } from "../components/table-pagination";
 import { ClientDetailsDialog } from "./components/client-details-dialog";
 import { DeleteClientDialog } from "./components/delete-client-dialog";
 import { CreateClientDialog } from "./components/create-client-dialog";
@@ -27,8 +28,9 @@ export default function ClientsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<ClientItem | null>(null);
 
-  // Preload role names in SWR cache for instant opening of Create/Edit dialogs
+  // Preload role names and group names in SWR cache for instant opening of Create/Edit dialogs
   useRoleNames();
+  useGroupNames();
 
   const page = Math.max(1, Number(searchParams.get("page")) || 1);
   const offset = (page - 1) * PAGE_SIZE;
@@ -99,12 +101,13 @@ export default function ClientsPage() {
           onDeleteClient={handleOpenDelete}
         />
 
-        <ClientsPagination
+        <TablePagination
           page={page}
           totalPages={totalPages}
           totalCount={totalCount}
           isLoading={isLoading}
           onPageChange={handlePageChange}
+          resourceName={{ singular: "client", plural: "clients" }}
         />
       </div>
 

@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import type { GetRolesResponseType } from "@repo/types/endpoints/mqtt/role";
 import type { HttpErrorType } from "@repo/types/commons";
 import { RolesTable } from "./components/roles-table";
-import { RolesPagination } from "./components/roles-pagination";
+import { TablePagination } from "../components/table-pagination";
 import { RoleDetailsDialog } from "./components/role-details-dialog";
 import { DeleteRoleDialog } from "./components/delete-role-dialog";
 import { CreateRoleDialog } from "./components/create-role-dialog";
@@ -95,12 +95,13 @@ export default function RolePage() {
           onDeleteRole={handleOpenDelete}
         />
 
-        <RolesPagination
+        <TablePagination
           page={page}
           totalPages={totalPages}
           totalCount={totalCount}
           isLoading={isLoading}
           onPageChange={handlePageChange}
+          resourceName={{ singular: "role", plural: "roles" }}
         />
       </div>
 
