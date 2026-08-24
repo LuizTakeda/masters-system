@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { useClients } from "@/hooks/mqtt/use-clients";
+import { useRoleNames } from "@/hooks/mqtt/use-roles";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -25,6 +26,9 @@ export default function ClientsPage() {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<ClientItem | null>(null);
+
+  // Preload role names in SWR cache for instant opening of Create/Edit dialogs
+  useRoleNames();
 
   const page = Math.max(1, Number(searchParams.get("page")) || 1);
   const offset = (page - 1) * PAGE_SIZE;
@@ -78,7 +82,7 @@ export default function ClientsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-base font-semibold tracking-tight text-foreground">Clients</h2>
-          <p className="text-xs text-muted-foreground">Manage MQTT client</p>
+          <p className="text-xs text-muted-foreground">Manage MQTT client credentials, active sessions, and permissions.</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} size="sm" className="gap-1.5">
           <Plus className="size-4" />

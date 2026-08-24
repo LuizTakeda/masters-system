@@ -28,7 +28,7 @@ function AlertDialogOverlay({
     <AlertDialogPrimitive.Backdrop
       data-slot="alert-dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/40 transition-opacity duration-150 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0",
+        "fixed inset-0 min-h-dvh bg-black/40 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 z-50",
         className
       )}
       {...props}
@@ -50,10 +50,10 @@ function AlertDialogContent({
         data-slot="alert-dialog-content"
         data-size={size}
         className={cn(
-          "group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-popover-foreground shadow-lg ring-1 ring-foreground/10 outline-none will-change-transform",
-          "transition-[transform,opacity] duration-150 ease-out",
-          "data-starting-style:opacity-0 data-starting-style:scale-95 data-starting-style:-translate-x-1/2 data-starting-style:-translate-y-1/2",
-          "data-ending-style:opacity-0 data-ending-style:scale-95 data-ending-style:-translate-x-1/2 data-ending-style:-translate-y-1/2",
+          "group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-popover-foreground shadow-lg ring-1 ring-foreground/10 outline-none",
+          "transition-[scale,opacity] duration-150 ease-out",
+          "data-starting-style:scale-[0.98] data-starting-style:opacity-0",
+          "data-ending-style:scale-[0.98] data-ending-style:opacity-0",
           "data-[size=default]:max-w-xs data-[size=sm]:max-w-xs data-[size=default]:sm:max-w-sm",
           className
         )}

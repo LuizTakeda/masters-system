@@ -43,35 +43,6 @@ export function RolePicker({
     return list.filter((name) => name.toLowerCase().includes(query));
   }, [roleNames, searchQuery, mode, assignedSet]);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-full rounded-lg" />
-        <div className="flex flex-wrap gap-1.5">
-          <Skeleton className="h-6 w-20 rounded-md" />
-          <Skeleton className="h-6 w-24 rounded-md" />
-          <Skeleton className="h-6 w-16 rounded-md" />
-        </div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="rounded-md border border-destructive/20 bg-destructive/10 p-2.5 text-xs text-destructive">
-        Failed to load roles from broker.
-      </div>
-    );
-  }
-
-  if (!roleNames || roleNames.length === 0) {
-    return (
-      <div className="rounded-md border border-dashed p-3 text-center text-xs text-muted-foreground">
-        No roles found on the broker.
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-2">
       <div className="relative">
@@ -81,7 +52,7 @@ export function RolePicker({
           placeholder={placeholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          disabled={disabled}
+          disabled={disabled || isLoading}
           className="h-8 pl-8 text-xs"
         />
         {searchQuery && (
@@ -97,7 +68,21 @@ export function RolePicker({
       </div>
 
       <div className="max-h-36 overflow-y-auto pr-1">
-        {filteredRoles.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-wrap gap-1.5 p-1.5 border rounded-lg bg-muted/20">
+            <Skeleton className="h-6 w-20 rounded-md" />
+            <Skeleton className="h-6 w-28 rounded-md" />
+            <Skeleton className="h-6 w-24 rounded-md" />
+          </div>
+        ) : isError ? (
+          <div className="rounded-md border border-destructive/20 bg-destructive/10 p-2.5 text-xs text-destructive">
+            Failed to load roles from broker.
+          </div>
+        ) : !roleNames || roleNames.length === 0 ? (
+          <div className="rounded-md border border-dashed p-3 text-center text-xs text-muted-foreground">
+            No roles found on the broker.
+          </div>
+        ) : filteredRoles.length === 0 ? (
           <div className="rounded-md border border-dashed p-3 text-center text-xs text-muted-foreground">
             {mode === "single" && roleNames.length === assignedSet.size
               ? "All available roles are already assigned."
@@ -113,7 +98,7 @@ export function RolePicker({
                   type="button"
                   onClick={() => onToggleRole?.(name)}
                   disabled={disabled}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 border ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 border cursor-pointer ${
                     isSelected
                       ? "bg-primary text-primary-foreground border-primary shadow-xs"
                       : "bg-background text-muted-foreground border-input hover:text-foreground hover:border-foreground/30"
@@ -159,4 +144,3 @@ export function RolePicker({
     </div>
   );
 }
-
