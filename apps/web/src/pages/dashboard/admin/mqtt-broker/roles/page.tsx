@@ -8,7 +8,7 @@ import type { GetRolesResponseType } from "@repo/types/endpoints/mqtt/role";
 import type { HttpErrorType } from "@repo/types/commons";
 import { RolesTable } from "./components/roles-table";
 import { RolesPagination } from "./components/roles-pagination";
-import { RoleDetailsSheet } from "./components/role-details-sheet";
+import { RoleDetailsDialog } from "./components/role-details-dialog";
 import { DeleteRoleDialog } from "./components/delete-role-dialog";
 import { CreateRoleDialog } from "./components/create-role-dialog";
 
@@ -100,7 +100,7 @@ export default function RolePage() {
         />
       </div>
 
-      <RoleDetailsSheet
+      <RoleDetailsDialog
         role={selectedRole}
         open={isOpen}
         onOpenChange={setIsOpen}
