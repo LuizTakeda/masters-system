@@ -1,5 +1,5 @@
 import { NavLink } from "react-router";
-import { Server } from "lucide-react";
+import { Home, Server } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,9 +11,16 @@ import {
 
 const adminItems = [
   {
+    title: "Home",
+    url: "/dashboard/admin",
+    icon: Home,
+    end: true,
+  },
+  {
     title: "MQTT Broker",
     url: "/dashboard/admin/mqtt-broker",
     icon: Server,
+    end: false,
   },
 ];
 
@@ -27,7 +34,7 @@ export function NavAdmin() {
             const Icon = item.icon;
             return (
               <SidebarMenuItem key={item.title}>
-                <NavLink to={item.url} className="w-full">
+                <NavLink to={item.url} end={item.end} className="w-full">
                   {({ isActive }) => (
                     <SidebarMenuButton
                       tooltip={item.title}
@@ -46,4 +53,3 @@ export function NavAdmin() {
     </SidebarGroup>
   );
 }
-

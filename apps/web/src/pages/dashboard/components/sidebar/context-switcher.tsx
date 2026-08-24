@@ -1,4 +1,5 @@
-import { ChevronsUpDown, Check, FolderGit2, Shield } from "lucide-react";
+import { useNavigate } from "react-router";
+import { ChevronsUpDown, Check, FolderGit2, LayoutDashboard, Shield } from "lucide-react";
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -11,16 +12,19 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 type Props = {
   currentContext: string | null;
   contexts: string[];
-  setContext: (context: string) => void;
 };
 
-function formatContextLabel(context: string) {
+function formatContextLabel(context: string | null) {
+  if (!context) {
+    return "Overview";
+  }
   if (context === "system-admin") {
     return "System Admin";
   }
@@ -30,14 +34,22 @@ function formatContextLabel(context: string) {
   return context;
 }
 
-export function ContextSwitcher({ contexts, currentContext, setContext }: Props) {
+export function ContextSwitcher({ contexts, currentContext }: Props) {
   const { isMobile } = useSidebar();
-
-  if (!currentContext) {
-    return null;
-  }
+  const navigate = useNavigate();
 
   const isSystemAdmin = currentContext === "system-admin";
+  const isNoContext = currentContext === null;
+
+  const handleSelectContext = (context: string | null) => {
+    if (!context) {
+      navigate("/dashboard");
+    } else if (context === "system-admin") {
+      navigate("/dashboard/admin");
+    } else {
+      navigate(`/dashboard/${encodeURIComponent(context)}`);
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -53,14 +65,16 @@ export function ContextSwitcher({ contexts, currentContext, setContext }: Props)
             }
           >
             <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0 shadow-xs">
-              {isSystemAdmin ? (
+              {isNoContext ? (
+                <LayoutDashboard className="size-4" />
+              ) : isSystemAdmin ? (
                 <Shield className="size-4" />
               ) : (
                 <FolderGit2 className="size-4" />
               )}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-              <span className="truncate text-xs text-muted-foreground font-medium">Context</span>
+              <span className="truncate text-xs text-muted-foreground font-medium">Workspace</span>
               <span className="truncate font-semibold text-foreground">
                 {formatContextLabel(currentContext)}
               </span>
@@ -75,38 +89,61 @@ export function ContextSwitcher({ contexts, currentContext, setContext }: Props)
           >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="text-xs text-muted-foreground">
-                Available Contexts
+                Navigation
               </DropdownMenuLabel>
-              {contexts.map((ctx) => {
-                const isSelected = ctx === currentContext;
-                const isSys = ctx === "system-admin";
-
-                return (
-                  <DropdownMenuItem
-                    key={ctx}
-                    onClick={() => setContext(ctx)}
-                    className="gap-2.5 p-2 cursor-pointer"
-                  >
-                    <div className="flex size-7 items-center justify-center rounded-md border bg-muted shrink-0 text-foreground">
-                      {isSys ? (
-                        <Shield className="size-3.5 text-primary" />
-                      ) : (
-                        <FolderGit2 className="size-3.5 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-medium">{formatContextLabel(ctx)}</span>
-                      <span className="truncate text-[10px] text-muted-foreground">{ctx}</span>
-                    </div>
-                    {isSelected && <Check className="size-4 text-primary ml-auto" />}
-                  </DropdownMenuItem>
-                );
-              })}
+              <DropdownMenuItem
+                onClick={() => handleSelectContext(null)}
+                className="gap-2.5 p-2 cursor-pointer"
+              >
+                <div className="flex size-7 items-center justify-center rounded-md border bg-muted shrink-0 text-foreground">
+                  <LayoutDashboard className="size-3.5 text-muted-foreground" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-medium">Overview</span>
+                  <span className="truncate text-[10px] text-muted-foreground">Dashboard home</span>
+                </div>
+                {isNoContext && <Check className="size-4 text-primary ml-auto" />}
+              </DropdownMenuItem>
             </DropdownMenuGroup>
+
+            {contexts.length > 0 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">
+                    Available Workspaces
+                  </DropdownMenuLabel>
+                  {contexts.map((ctx) => {
+                    const isSelected = ctx === currentContext;
+                    const isSys = ctx === "system-admin";
+
+                    return (
+                      <DropdownMenuItem
+                        key={ctx}
+                        onClick={() => handleSelectContext(ctx)}
+                        className="gap-2.5 p-2 cursor-pointer"
+                      >
+                        <div className="flex size-7 items-center justify-center rounded-md border bg-muted shrink-0 text-foreground">
+                          {isSys ? (
+                            <Shield className="size-3.5 text-primary" />
+                          ) : (
+                            <FolderGit2 className="size-3.5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                          <span className="truncate font-medium">{formatContextLabel(ctx)}</span>
+                          <span className="truncate text-[10px] text-muted-foreground">{ctx}</span>
+                        </div>
+                        {isSelected && <Check className="size-4 text-primary ml-auto" />}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuGroup>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
   );
 }
-

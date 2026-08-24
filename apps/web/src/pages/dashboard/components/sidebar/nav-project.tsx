@@ -1,5 +1,5 @@
 import { NavLink } from "react-router";
-import { Layers } from "lucide-react";
+import { Home, Layers } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -14,29 +14,48 @@ type Props = {
 };
 
 export function NavProject({ project }: Props) {
-  const projectLabel = project.replace(/^project-?/, "") || project;
+  const projectLabel = project.replace(/^project-?/, "").toUpperCase() || project;
+
+  const projectItems = [
+    {
+      title: "Project Home",
+      url: `/dashboard/${encodeURIComponent(project)}`,
+      icon: Home,
+      end: true,
+    },
+    {
+      title: "Context",
+      url: `/dashboard/${encodeURIComponent(project)}/context`,
+      icon: Layers,
+      end: false,
+    },
+  ];
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="capitalize">{projectLabel}</SidebarGroupLabel>
+      <SidebarGroupLabel>{projectLabel}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <NavLink to={`/dashboard/project/${project}/context`} className="w-full">
-              {({ isActive }) => (
-                <SidebarMenuButton
-                  tooltip="Context"
-                  isActive={isActive}
-                >
-                  <Layers className="size-4" />
-                  <span>Context</span>
-                </SidebarMenuButton>
-              )}
-            </NavLink>
-          </SidebarMenuItem>
+          {projectItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <SidebarMenuItem key={item.title}>
+                <NavLink to={item.url} end={item.end} className="w-full">
+                  {({ isActive }) => (
+                    <SidebarMenuButton
+                      tooltip={item.title}
+                      isActive={isActive}
+                    >
+                      <Icon className="size-4" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  )}
+                </NavLink>
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   );
 }
-

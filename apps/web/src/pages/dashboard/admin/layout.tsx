@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router";
 import { useMe } from "../../../hooks/use-me";
 import { Loader2 } from "lucide-react";
 
-export default function AdminLayout() {
+export default function AdminDashboardLayout() {
   const { isLoading, isError, user } = useMe();
 
   if (isLoading) {

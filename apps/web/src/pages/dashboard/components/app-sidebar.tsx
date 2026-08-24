@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useLocation } from "react-router";
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +16,7 @@ import { SidebarSkeleton } from "./sidebar/sidebar-skeleton";
 
 export function AppSidebar() {
   const { isLoading, isError, user } = useMe();
-  const [selectedContext, setSelectedContext] = useState<string | null>(null);
+  const location = useLocation();
 
   const availableContexts = useMemo(() => {
     if (!user) return [];
@@ -26,13 +27,29 @@ export function AppSidebar() {
       contexts.push("system-admin");
     }
 
-    const projects = user.groups.filter((str) => str.includes("project"));
+    const projects = user.groups.filter((str) => str.startsWith("project-"));
     contexts.push(...projects);
 
     return contexts;
   }, [user]);
 
-  const currentContext = selectedContext ?? availableContexts.at(0) ?? null;
+  // Derive active context directly from the current URL path
+  // If the user is on /dashboard, context is null (No context / Overview)
+  const currentContext = useMemo(() => {
+    const pathname = location.pathname;
+
+    if (pathname.startsWith("/dashboard/admin")) {
+      return "system-admin";
+    }
+
+    const projectMatch = pathname.match(/^\/dashboard\/([^/]+)/);
+    if (projectMatch && projectMatch[1]) {
+      return decodeURIComponent(projectMatch[1]);
+    }
+
+    // Default to null (Overview / General dashboard)
+    return null;
+  }, [location.pathname]);
 
   if (isLoading || isError || !user) {
     return <SidebarSkeleton />;
@@ -42,7 +59,6 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <ContextSwitcher
-          setContext={setSelectedContext}
           currentContext={currentContext}
           contexts={availableContexts}
         />
