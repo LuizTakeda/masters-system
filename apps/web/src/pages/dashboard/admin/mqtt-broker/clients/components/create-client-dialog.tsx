@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import { useClients } from "@/hooks/mqtt/use-clients";
-import { useRoleNames } from "@/hooks/mqtt/use-roles";
-import { Loader2, Plus, UserPlus, X } from "lucide-react";
+import { Loader2, Plus, UserPlus } from "lucide-react";
 import type { HttpErrorType } from "@repo/types/commons";
 import type { CreateClientBodyType } from "@repo/types/endpoints/mqtt/client";
+import { RolePicker } from "./role-picker";
 
 type Props = {
   open: boolean;
@@ -23,7 +23,6 @@ type Props = {
 
 export function CreateClientDialog({ open, onOpenChange }: Props) {
   const { createClient } = useClients();
-  const { roleNames } = useRoleNames();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -188,41 +187,21 @@ export function CreateClientDialog({ open, onOpenChange }: Props) {
             </div>
           </div>
 
-          {/* Roles Selection */}
-          <div className="space-y-2.5 pt-2 border-t">
+          {/* Roles Selection with RolePicker */}
+          <div className="space-y-2 pt-2 border-t">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Assigned Roles ({selectedRoles.length})
               </h4>
             </div>
 
-            {roleNames && roleNames.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 border rounded-lg bg-muted/20">
-                {roleNames.map((name) => {
-                  const isSelected = selectedRoles.includes(name);
-                  return (
-                    <button
-                      key={name}
-                      type="button"
-                      onClick={() => handleToggleRole(name)}
-                      disabled={isSubmitting}
-                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 border ${
-                        isSelected
-                          ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                          : "bg-background text-muted-foreground border-input hover:text-foreground"
-                      }`}
-                    >
-                      <span>{name}</span>
-                      {isSelected ? <X className="size-3" /> : <Plus className="size-3 opacity-60" />}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground italic">
-                No roles available on the broker.
-              </p>
-            )}
+            <RolePicker
+              selectedRoles={selectedRoles}
+              onToggleRole={handleToggleRole}
+              mode="multiple"
+              placeholder="Search and select roles..."
+              disabled={isSubmitting}
+            />
           </div>
 
           <DialogFooter>
@@ -253,4 +232,3 @@ export function CreateClientDialog({ open, onOpenChange }: Props) {
     </Dialog>
   );
 }
-

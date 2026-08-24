@@ -13,7 +13,6 @@ import { toast } from "@/components/ui/toast";
 import { useClient } from "@/hooks/mqtt/use-clients";
 import { useRoleNames } from "@/hooks/mqtt/use-roles";
 import {
-  Check,
   KeyRound,
   Loader2,
   Plus,
@@ -23,12 +22,14 @@ import {
   User,
   UserCheck,
   UserX,
+  X,
 } from "lucide-react";
 import type { HttpErrorType } from "@repo/types/commons";
 import type {
   GetClientResponseType,
   GetClientsResponseType,
 } from "@repo/types/endpoints/mqtt/client";
+import { RolePicker } from "./role-picker";
 
 type ClientSummaryItem = GetClientsResponseType["clients"][number];
 type ClientDetailItem = GetClientResponseType["client"];
@@ -63,7 +64,6 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
 
   // Add Role state
   const [isAddingRole, setIsAddingRole] = useState(false);
-  const [selectedRoleToAdd, setSelectedRoleToAdd] = useState("");
   const [isSubmittingRole, setIsSubmittingRole] = useState(false);
   const [removingRoleName, setRemovingRoleName] = useState<string | null>(null);
 
@@ -132,19 +132,15 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
     }
   };
 
-  const handleAddRoleToClient = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedRoleToAdd) return;
-
+  const handleAddRoleToClient = async (roleName: string) => {
     try {
       setIsSubmittingRole(true);
-      await addRole({ rolename: selectedRoleToAdd });
+      await addRole({ rolename: roleName });
       toast.add({
         title: "Role assigned",
-        description: `Role "${selectedRoleToAdd}" was assigned to ${username}.`,
+        description: `Role "${roleName}" was assigned to ${username}.`,
         type: "success",
       });
-      setSelectedRoleToAdd("");
       setIsAddingRole(false);
     } catch (error) {
       const err = error as Partial<HttpErrorType>;
@@ -179,9 +175,9 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
     }
   };
 
-  // Filter available roles not yet assigned
-  const assignedRoleNames = new Set(activeClient?.roles?.map((r) => r.rolename) ?? []);
-  const unassignedRoles = roleNames?.filter((r) => !assignedRoleNames.has(r)) ?? [];
+  // Filter assigned roles
+  const assignedRoleNames = activeClient?.roles?.map((r) => r.rolename) ?? [];
+  const hasUnassignedRoles = (roleNames?.length ?? 0) > assignedRoleNames.length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -279,7 +275,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
                 <h4 className="font-semibold uppercase tracking-wider text-muted-foreground text-[11px]">
                   Assigned Roles ({activeClient.roles?.length ?? 0})
                 </h4>
-                {!isAddingRole && unassignedRoles.length > 0 && (
+                {!isAddingRole && hasUnassignedRoles && (
                   <Button
                     type="button"
                     variant="outline"
@@ -293,51 +289,30 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
                 )}
               </div>
 
-              {/* Inline Add Role form */}
+              {/* Inline Role Picker with Search */}
               {isAddingRole && (
-                <form
-                  onSubmit={handleAddRoleToClient}
-                  className="flex items-center gap-2 p-2.5 rounded-md border bg-muted/30"
-                >
-                  <select
-                    value={selectedRoleToAdd}
-                    onChange={(e) => setSelectedRoleToAdd(e.target.value)}
-                    disabled={isSubmittingRole}
-                    className="h-7 flex-1 rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    required
-                  >
-                    <option value="">Select a role to assign...</option>
-                    {unassignedRoles.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </select>
+                <div className="p-3 rounded-lg border bg-muted/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-foreground text-[11px]">Search & Assign Role</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => setIsAddingRole(false)}
+                      disabled={isSubmittingRole}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
 
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={!selectedRoleToAdd || isSubmittingRole}
-                    className="h-7 text-xs gap-1"
-                  >
-                    {isSubmittingRole ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
-                    <span>Assign</span>
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setIsAddingRole(false);
-                      setSelectedRoleToAdd("");
-                    }}
+                  <RolePicker
+                    selectedRoles={assignedRoleNames}
+                    onSelectRole={handleAddRoleToClient}
+                    mode="single"
+                    placeholder="Search unassigned role..."
                     disabled={isSubmittingRole}
-                    className="h-7 text-xs"
-                  >
-                    Cancel
-                  </Button>
-                </form>
+                  />
+                </div>
               )}
 
               {/* Roles List */}
@@ -447,4 +422,3 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
     </Dialog>
   );
 }
-
