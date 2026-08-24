@@ -68,7 +68,9 @@ export function RolesTable({
           roles.map((role) => (
             <TableRow key={role.rolename} className="hover:bg-muted/40 transition-colors">
               <TableCell className="font-medium flex items-center gap-2">
-                <Shield className="size-4 text-muted-foreground shrink-0" />
+                <div className="p-1.5 rounded-md shrink-0 flex items-center justify-center bg-primary/10 text-primary border border-primary/20">
+                  <Shield className="size-4" />
+                </div>
                 <span>{role.rolename}</span>
               </TableCell>
               <TableCell className="text-muted-foreground text-sm">
