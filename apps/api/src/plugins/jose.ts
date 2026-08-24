@@ -6,6 +6,7 @@ declare module "fastify" {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     authenticateAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    authenticateProject: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
   interface FastifyRequest {
     user?: KeycloakUserPayload;
@@ -71,4 +72,30 @@ export default fp(async (fastify: FastifyInstance) => {
       }
     }
   )
+
+  fastify.decorate(
+    "authenticateProject",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      await fastify.authenticate(request, reply);
+
+      if (reply.sent) return;
+
+      const params = request.params as Record<string, string> | undefined;
+
+      const project = params?.project;
+      
+      if (!project) {
+        return reply.badRequest("Project parameter (:project) is missing from URL.");
+      }
+
+      const userProjects = (request.user?.groups || []).filter(
+        (group): group is string => typeof group === "string" && group.startsWith("project-")
+      );
+
+      const hasProjectAccess = userProjects.includes(project);
+
+      if (!hasProjectAccess) {
+        return reply.forbidden(`You do not have access to the '${project}' project.`);
+      }
+    });
 });

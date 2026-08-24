@@ -6,13 +6,12 @@ import swaggerPlugin from "./plugins/swagger.js"
 import cors from "./plugins/cors.js"
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod'
-//import prismaPlugin from "@plugins/prisma.js"
+import prismaPlugin from "@/plugins/prisma.js"
 import fastifySensible from "@fastify/sensible"
 import envPlugin from "@plugins/env.js"
 import oauth2Plugin from "@plugins/oauth2.js"
 import josePlugin from "@plugins/jose.js"
 import mqttPlugin from "@/plugins/mqtt/index.js"
-import pino from 'pino'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -39,7 +38,7 @@ await app.register(cors);
 await app.register(oauth2Plugin);
 await app.register(josePlugin);
 await app.register(mqttPlugin);
-//await app.register(prismaPlugin);
+await app.register(prismaPlugin);
 
 if (isDevelopment) {
   await app.register(swaggerPlugin);

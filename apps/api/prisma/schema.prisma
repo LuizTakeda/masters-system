@@ -11,3 +11,16 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model ProjectContextFile {
+  id          String   @id @default(cuid())
+  project     String   @unique
+  name        String?
+  description String?
+  file        Json
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([project])
+}
