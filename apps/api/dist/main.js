@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+import * as path from 'node:path';
 import { dirname, join } from 'node:path';
 import fastify from 'fastify';
 import autoload from '@fastify/autoload';
@@ -7,6 +8,10 @@ import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import { jsonSchemaTransform, validatorCompiler, serializerCompiler } from 'fastify-type-provider-zod';
 import cors$1 from '@fastify/cors';
+import { PrismaPg } from '@prisma/adapter-pg';
+import 'node:process';
+import * as runtime from '@prisma/client/runtime/client';
+import { Pool } from 'pg';
 import fastifySensible from '@fastify/sensible';
 import 'dotenv/config';
 import z$1, { z } from 'zod';
@@ -16,7 +21,6 @@ import 'simple-oauth2';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { EventEmitter } from 'events';
 import mqtt from 'mqtt';
-import 'pino';
 
 var swaggerPlugin = fp(async (fastify) => {
   await fastify.register(swagger, {
@@ -72,6 +76,85 @@ var cors = fp(async (fastify) => {
   await fastify.register(cors$1, {
     origin: fastify.config.CORS_ORIGIN,
     credentials: true
+  });
+});
+
+const config = {
+  "previewFeatures": [],
+  "clientVersion": "7.9.0",
+  "engineVersion": "e922089b7d7502aff4249d5da3420f6fa55fc6ad",
+  "activeProvider": "postgresql",
+  "inlineSchema": '// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Get a free hosted Postgres database in seconds: `npx create-db`\n\ngenerator client {\n  provider = "prisma-client"\n  output   = "../generated/prisma"\n}\n\ndatasource db {\n  provider = "postgresql"\n}\n\nmodel ProjectContextFile {\n  id          String   @id @default(cuid())\n  project     String   @unique\n  name        String?\n  description String?\n  file        Json\n  version     Int      @default(1)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  @@index([project])\n}\n',
+  "runtimeDataModel": {
+    "models": {},
+    "enums": {},
+    "types": {}
+  },
+  "parameterizationSchema": {
+    "strings": [],
+    "graph": ""
+  }
+};
+config.runtimeDataModel = JSON.parse('{"models":{"ProjectContextFile":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"project","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"file","kind":"scalar","type":"Json"},{"name":"version","kind":"scalar","type":"Int"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null}},"enums":{},"types":{}}');
+config.parameterizationSchema = {
+  strings: JSON.parse('["where","ProjectContextFile.findUnique","ProjectContextFile.findUniqueOrThrow","orderBy","cursor","ProjectContextFile.findFirst","ProjectContextFile.findFirstOrThrow","ProjectContextFile.findMany","data","ProjectContextFile.createOne","ProjectContextFile.createMany","ProjectContextFile.createManyAndReturn","ProjectContextFile.updateOne","ProjectContextFile.updateMany","ProjectContextFile.updateManyAndReturn","create","update","ProjectContextFile.upsertOne","ProjectContextFile.deleteOne","ProjectContextFile.deleteMany","having","_count","_avg","_sum","_min","_max","ProjectContextFile.groupBy","ProjectContextFile.aggregate","AND","OR","NOT","id","project","name","description","file","version","createdAt","updatedAt","equals","in","notIn","lt","lte","gt","gte","not","string_contains","string_starts_with","string_ends_with","array_starts_with","array_ends_with","array_contains","contains","startsWith","endsWith","set","increment","decrement","multiply","divide"]'),
+  graph: "OgsQCxwAACsAMB0AAAQAEB4AACsAMB8BAAAAASABAAAAASEBAC0AISIBAC0AISMAAC4AICQCAC8AISVAADAAISZAADAAIQEAAAABACABAAAAAQAgCxwAACsAMB0AAAQAEB4AACsAMB8BACwAISABACwAISEBAC0AISIBAC0AISMAAC4AICQCAC8AISVAADAAISZAADAAIQIhAAAxACAiAAAxACADAAAABAAgAwAABQAwBAAAAQAgAwAAAAQAIAMAAAUAMAQAAAEAIAMAAAAEACADAAAFADAEAAABACAIHwEAAAABIAEAAAABIQEAAAABIgEAAAABI4AAAAABJAIAAAABJUAAAAABJkAAAAABAQgAAAkAIAgfAQAAAAEgAQAAAAEhAQAAAAEiAQAAAAEjgAAAAAEkAgAAAAElQAAAAAEmQAAAAAEBCAAACwAwAQgAAAsAMAgfAQA3ACEgAQA3ACEhAQA4ACEiAQA4ACEjgAAAAAEkAgA5ACElQAA6ACEmQAA6ACECAAAAAQAgCAAADgAgCB8BADcAISABADcAISEBADgAISIBADgAISOAAAAAASQCADkAISVAADoAISZAADoAIQIAAAAEACAIAAAQACACAAAABAAgCAAAEAAgAwAAAAEAIA8AAAkAIBAAAA4AIAEAAAABACABAAAABAAgBxUAADIAIBYAADMAIBcAADYAIBgAADUAIBkAADQAICEAADEAICIAADEAIAscAAAaADAdAAAXABAeAAAaADAfAQAbACEgAQAbACEhAQAcACEiAQAcACEjAAAdACAkAgAeACElQAAfACEmQAAfACEDAAAABAAgAwAAFgAwFAAAFwAgAwAAAAQAIAMAAAUAMAQAAAEAIAscAAAaADAdAAAXABAeAAAaADAfAQAbACEgAQAbACEhAQAcACEiAQAcACEjAAAdACAkAgAeACElQAAfACEmQAAfACEOFQAAIQAgGAAAKgAgGQAAKgAgJwEAAAABKAEAAAAEKQEAAAAEKgEAAAABKwEAAAABLAEAAAABLQEAAAABLgEAKQAhNQEAAAABNgEAAAABNwEAAAABDhUAACcAIBgAACgAIBkAACgAICcBAAAAASgBAAAABSkBAAAABSoBAAAAASsBAAAAASwBAAAAAS0BAAAAAS4BACYAITUBAAAAATYBAAAAATcBAAAAAQ8VAAAhACAYAAAlACAZAAAlACAngAAAAAEqgAAAAAErgAAAAAEsgAAAAAEtgAAAAAEugAAAAAEvAQAAAAEwAQAAAAExAQAAAAEygAAAAAEzgAAAAAE0gAAAAAENFQAAIQAgFgAAJAAgFwAAIQAgGAAAIQAgGQAAIQAgJwIAAAABKAIAAAAEKQIAAAAEKgIAAAABKwIAAAABLAIAAAABLQIAAAABLgIAIwAhCxUAACEAIBgAACIAIBkAACIAICdAAAAAAShAAAAABClAAAAABCpAAAAAAStAAAAAASxAAAAAAS1AAAAAAS5AACAAIQsVAAAhACAYAAAiACAZAAAiACAnQAAAAAEoQAAAAAQpQAAAAAQqQAAAAAErQAAAAAEsQAAAAAEtQAAAAAEuQAAgACEIJwIAAAABKAIAAAAEKQIAAAAEKgIAAAABKwIAAAABLAIAAAABLQIAAAABLgIAIQAhCCdAAAAAAShAAAAABClAAAAABCpAAAAAAStAAAAAASxAAAAAAS1AAAAAAS5AACIAIQ0VAAAhACAWAAAkACAXAAAhACAYAAAhACAZAAAhACAnAgAAAAEoAgAAAAQpAgAAAAQqAgAAAAErAgAAAAEsAgAAAAEtAgAAAAEuAgAjACEIJwgAAAABKAgAAAAEKQgAAAAEKggAAAABKwgAAAABLAgAAAABLQgAAAABLggAJAAhDCeAAAAAASqAAAAAASuAAAAAASyAAAAAAS2AAAAAAS6AAAAAAS8BAAAAATABAAAAATEBAAAAATKAAAAAATOAAAAAATSAAAAAAQ4VAAAnACAYAAAoACAZAAAoACAnAQAAAAEoAQAAAAUpAQAAAAUqAQAAAAErAQAAAAEsAQAAAAEtAQAAAAEuAQAmACE1AQAAAAE2AQAAAAE3AQAAAAEIJwIAAAABKAIAAAAFKQIAAAAFKgIAAAABKwIAAAABLAIAAAABLQIAAAABLgIAJwAhCycBAAAAASgBAAAABSkBAAAABSoBAAAAASsBAAAAASwBAAAAAS0BAAAAAS4BACgAITUBAAAAATYBAAAAATcBAAAAAQ4VAAAhACAYAAAqACAZAAAqACAnAQAAAAEoAQAAAAQpAQAAAAQqAQAAAAErAQAAAAEsAQAAAAEtAQAAAAEuAQApACE1AQAAAAE2AQAAAAE3AQAAAAELJwEAAAABKAEAAAAEKQEAAAAEKgEAAAABKwEAAAABLAEAAAABLQEAAAABLgEAKgAhNQEAAAABNgEAAAABNwEAAAABCxwAACsAMB0AAAQAEB4AACsAMB8BACwAISABACwAISEBAC0AISIBAC0AISMAAC4AICQCAC8AISVAADAAISZAADAAIQsnAQAAAAEoAQAAAAQpAQAAAAQqAQAAAAErAQAAAAEsAQAAAAEtAQAAAAEuAQAqACE1AQAAAAE2AQAAAAE3AQAAAAELJwEAAAABKAEAAAAFKQEAAAAFKgEAAAABKwEAAAABLAEAAAABLQEAAAABLgEAKAAhNQEAAAABNgEAAAABNwEAAAABDCeAAAAAASqAAAAAASuAAAAAASyAAAAAAS2AAAAAAS6AAAAAAS8BAAAAATABAAAAATEBAAAAATKAAAAAATOAAAAAATSAAAAAAQgnAgAAAAEoAgAAAAQpAgAAAAQqAgAAAAErAgAAAAEsAgAAAAEtAgAAAAEuAgAhACEIJ0AAAAABKEAAAAAEKUAAAAAEKkAAAAABK0AAAAABLEAAAAABLUAAAAABLkAAIgAhAAAAAAAAATgBAAAAAQE4AQAAAAEFOAIAAAABOQIAAAABOgIAAAABOwIAAAABPAIAAAABAThAAAAAAQAAAAAFFQAGFgAHFwAIGAAJGQAKAAAAAAAFFQAGFgAHFwAIGAAJGQAKAQIBAgMBBQYBBgcBBwgBCQoBCgwCCw0DDA8BDRECDhIEERMBEhQBExUCGhgFGxkL"
+};
+async function decodeBase64AsWasm(wasmBase64) {
+  const { Buffer } = await import('node:buffer');
+  const wasmArray = Buffer.from(wasmBase64, "base64");
+  return new WebAssembly.Module(wasmArray);
+}
+config.compilerWasm = {
+  getRuntime: async () => await import('@prisma/client/runtime/query_compiler_fast_bg.postgresql.mjs'),
+  getQueryCompilerWasmModule: async () => {
+    const { wasm } = await import('@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.mjs');
+    return await decodeBase64AsWasm(wasm);
+  },
+  importName: "./query_compiler_fast_bg.js"
+};
+function getPrismaClientClass() {
+  return runtime.getPrismaClient(config);
+}
+
+runtime.Extensions.getExtensionContext;
+({
+  DbNull: runtime.NullTypes.DbNull,
+  JsonNull: runtime.NullTypes.JsonNull,
+  AnyNull: runtime.NullTypes.AnyNull
+});
+runtime.makeStrictEnum({
+  ReadUncommitted: "ReadUncommitted",
+  ReadCommitted: "ReadCommitted",
+  RepeatableRead: "RepeatableRead",
+  Serializable: "Serializable"
+});
+runtime.Extensions.defineExtension;
+
+globalThis["__dirname"] = path.dirname(fileURLToPath(import.meta.url));
+const PrismaClient = getPrismaClientClass();
+
+var prismaPlugin = fp(async (server) => {
+  const connectionString = server.config?.DATABASE_URL || process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL environment variable is missing.");
+  }
+  const pool = new Pool({
+    connectionString,
+    max: 10,
+    idleTimeoutMillis: 3e4,
+    connectionTimeoutMillis: 5e3
+  });
+  const adapter = new PrismaPg(pool);
+  const prisma = new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"]
+  });
+  server.decorate("prisma", prisma);
+  server.addHook("onClose", async () => {
+    server.log.info("Closing Prisma client and PostgreSQL connection pool...");
+    await prisma.$disconnect();
+    await pool.end();
   });
 });
 
@@ -155,6 +238,25 @@ var josePlugin = fp(async (fastify) => {
         }
       } catch (err) {
         return reply.unauthorized();
+      }
+    }
+  );
+  fastify.decorate(
+    "authenticateProject",
+    async (request, reply) => {
+      await fastify.authenticate(request, reply);
+      if (reply.sent) return;
+      const params = request.params;
+      const project = params?.project;
+      if (!project) {
+        return reply.badRequest("Project parameter (:project) is missing from URL.");
+      }
+      const userProjects = (request.user?.groups || []).filter(
+        (group) => typeof group === "string" && group.startsWith("project-")
+      );
+      const hasProjectAccess = userProjects.includes(project);
+      if (!hasProjectAccess) {
+        return reply.forbidden(`You do not have access to the '${project}' project.`);
       }
     }
   );
@@ -309,6 +411,7 @@ const ListClientsVerboseResponseSchema = z.object({
             clientid: z.string().optional(),
             textname: z.string().optional(),
             textdescription: z.string().optional(),
+            disabled: z.boolean().optional(),
             roles: z.array(
               z.object({
                 rolename: z.string(),
@@ -671,7 +774,7 @@ async function createCommandsQueue(client, messageEventStream) {
       commandsItem.reject(new Error("Broker response timeout"));
       isProcessing = false;
       processQueue();
-    }, 1e3 * 5);
+    }, 1e3 * 10);
     messageEventStream.once(RESP_TOPIC, messageCallback);
     client.publish(CMD_TOPIC, JSON.stringify(commandsItem.payload), { qos: 1 }, (err) => {
       if (err) {
@@ -939,6 +1042,7 @@ await app.register(cors);
 await app.register(oauth2Plugin);
 await app.register(josePlugin);
 await app.register(mqttPlugin);
+await app.register(prismaPlugin);
 if (isDevelopment) {
   await app.register(swaggerPlugin);
 }
