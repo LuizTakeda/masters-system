@@ -13,6 +13,8 @@ import { toast } from "@/components/ui/toast";
 import { useClient } from "@/hooks/mqtt/use-clients";
 import { useRoleNames } from "@/hooks/mqtt/use-roles";
 import {
+  Eye,
+  EyeOff,
   KeyRound,
   Loader2,
   Plus,
@@ -60,6 +62,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
   // Change Password state
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 
   // Add Role state
@@ -119,6 +122,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
         type: "success",
       });
       setNewPassword("");
+      setShowNewPassword(false);
       setIsChangingPassword(false);
     } catch (error) {
       const err = error as Partial<HttpErrorType>;
@@ -377,15 +381,34 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
                   onSubmit={handleSavePassword}
                   className="flex items-center gap-2 p-2.5 rounded-md border bg-muted/30"
                 >
-                  <Input
-                    type="password"
-                    placeholder="Enter new password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    disabled={isSubmittingPassword}
-                    required
-                    className="h-7 text-xs"
-                  />
+                  <div className="relative flex-1">
+                    <Input
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={isSubmittingPassword}
+                      required
+                      className="h-7 text-xs pr-7"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword((prev) => !prev)}
+                      disabled={isSubmittingPassword}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                      title={showNewPassword ? "Hide password" : "Show password"}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff className="size-3.5" />
+                      ) : (
+                        <Eye className="size-3.5" />
+                      )}
+                      <span className="sr-only">
+                        {showNewPassword ? "Hide password" : "Show password"}
+                      </span>
+                    </button>
+                  </div>
+
                   <Button
                     type="submit"
                     size="sm"
@@ -401,6 +424,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: Props) {
                     onClick={() => {
                       setIsChangingPassword(false);
                       setNewPassword("");
+                      setShowNewPassword(false);
                     }}
                     disabled={isSubmittingPassword}
                     className="h-7 text-xs"

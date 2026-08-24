@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import { useClients } from "@/hooks/mqtt/use-clients";
-import { Loader2, Plus, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Loader2, Plus, UserPlus } from "lucide-react";
 import type { HttpErrorType } from "@repo/types/commons";
 import type { CreateClientBodyType } from "@repo/types/endpoints/mqtt/client";
 import { RolePicker } from "./role-picker";
@@ -26,6 +26,7 @@ export function CreateClientDialog({ open, onOpenChange }: Props) {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [clientid, setClientid] = useState("");
   const [textname, setTextname] = useState("");
   const [textdescription, setTextdescription] = useState("");
@@ -35,6 +36,7 @@ export function CreateClientDialog({ open, onOpenChange }: Props) {
   const resetForm = () => {
     setUsername("");
     setPassword("");
+    setShowPassword(false);
     setClientid("");
     setTextname("");
     setTextdescription("");
@@ -137,14 +139,33 @@ export function CreateClientDialog({ open, onOpenChange }: Props) {
                 <label className="text-xs font-medium text-foreground">
                   Password <span className="text-destructive">*</span>
                 </label>
-                <Input
-                  type="password"
-                  placeholder="Client password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Client password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                    className="pr-8.5"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    disabled={isSubmitting}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                    title={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
+                    <span className="sr-only">
+                      {showPassword ? "Hide password" : "Show password"}
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
 
