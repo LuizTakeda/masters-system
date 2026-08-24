@@ -15,6 +15,7 @@ import { Eye, EyeOff, Loader2, Plus, UserPlus } from "lucide-react";
 import type { HttpErrorType } from "@repo/types/commons";
 import type { CreateClientBodyType } from "@repo/types/endpoints/mqtt/client";
 import { RolePicker } from "./role-picker";
+import { GroupPicker } from "./group-picker";
 
 type Props = {
   open: boolean;
@@ -30,6 +31,7 @@ export function CreateClientDialog({ open, onOpenChange }: Props) {
   const [clientid, setClientid] = useState("");
   const [textname, setTextname] = useState("");
   const [textdescription, setTextdescription] = useState("");
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,7 +42,16 @@ export function CreateClientDialog({ open, onOpenChange }: Props) {
     setClientid("");
     setTextname("");
     setTextdescription("");
+    setSelectedGroups([]);
     setSelectedRoles([]);
+  };
+
+  const handleToggleGroup = (groupName: string) => {
+    setSelectedGroups((prev) =>
+      prev.includes(groupName)
+        ? prev.filter((g) => g !== groupName)
+        : [...prev, groupName]
+    );
   };
 
   const handleToggleRole = (roleName: string) => {
@@ -72,6 +83,11 @@ export function CreateClientDialog({ open, onOpenChange }: Props) {
       ...(clientid.trim() ? { clientid: clientid.trim() } : {}),
       ...(textname.trim() ? { textname: textname.trim() } : {}),
       ...(textdescription.trim() ? { textdescription: textdescription.trim() } : {}),
+      ...(selectedGroups.length > 0
+        ? {
+            groups: selectedGroups.map((g) => ({ groupname: g })),
+          }
+        : {}),
       ...(selectedRoles.length > 0
         ? {
             roles: selectedRoles.map((r) => ({ rolename: r })),
@@ -113,7 +129,7 @@ export function CreateClientDialog({ open, onOpenChange }: Props) {
               <div>
                 <DialogTitle>Create New Client</DialogTitle>
                 <DialogDescription>
-                  Configure credentials and initial security roles for MQTT authentication.
+                  Configure credentials, groups, and security roles for MQTT authentication.
                 </DialogDescription>
               </div>
             </div>
@@ -208,11 +224,28 @@ export function CreateClientDialog({ open, onOpenChange }: Props) {
             </div>
           </div>
 
+          {/* Groups Selection */}
+          <div className="space-y-2 pt-2 border-t">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Assigned Groups ({selectedGroups.length})
+              </h4>
+            </div>
+
+            <GroupPicker
+              selectedGroups={selectedGroups}
+              onToggleGroup={handleToggleGroup}
+              mode="multiple"
+              placeholder="Search and select groups..."
+              disabled={isSubmitting}
+            />
+          </div>
+
           {/* Roles Selection with RolePicker */}
           <div className="space-y-2 pt-2 border-t">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Assigned Roles ({selectedRoles.length})
+                Direct Roles ({selectedRoles.length})
               </h4>
             </div>
 
