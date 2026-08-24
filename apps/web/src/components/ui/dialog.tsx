@@ -29,7 +29,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/40 transition-opacity duration-150 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0",
+        "fixed inset-0 min-h-dvh bg-black/40 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 z-50",
         className
       )}
       {...props}
@@ -51,10 +51,10 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-6 text-popover-foreground shadow-lg ring-1 ring-foreground/10 outline-none will-change-transform max-w-lg sm:max-w-xl max-h-[90vh] overflow-y-auto",
-          "transition-[transform,opacity] duration-150 ease-out",
-          "data-starting-style:opacity-0 data-starting-style:scale-95 data-starting-style:-translate-x-1/2 data-starting-style:-translate-y-1/2",
-          "data-ending-style:opacity-0 data-ending-style:scale-95 data-ending-style:-translate-x-1/2 data-ending-style:-translate-y-1/2",
+          "fixed top-1/2 left-1/2 z-50 flex w-full max-w-lg sm:max-w-xl max-h-[90vh] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-xl bg-popover p-6 text-popover-foreground shadow-lg ring-1 ring-foreground/10 outline-none overflow-y-auto",
+          "transition-[scale,opacity] duration-150 ease-out",
+          "data-starting-style:scale-[0.98] data-starting-style:opacity-0",
+          "data-ending-style:scale-[0.98] data-ending-style:opacity-0",
           className
         )}
         {...props}
@@ -147,4 +147,3 @@ export {
   DialogDescription,
   DialogClose,
 }
-

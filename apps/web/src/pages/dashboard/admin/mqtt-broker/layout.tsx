@@ -1,9 +1,10 @@
 import { NavLink, Outlet } from "react-router";
 import PageHeader from "../../components/page-header";
-import { Shield, User, Users } from "lucide-react";
+import { ChartArea, Shield, User, Users } from "lucide-react";
 
 const tabs = [
-  { to: "", label: "Clients", icon: User, end: true },
+  { to: "", label: "Analytics", icon: ChartArea, end: true },
+  { to: "clients", label: "Clients", icon: User, end: true },
   { to: "groups", label: "Groups", icon: Users, end: false },
   { to: "roles", label: "Roles", icon: Shield, end: false },
 ];
@@ -28,10 +29,9 @@ export default function MqttBrokerLayout() {
                 to={tab.to}
                 end={tab.end}
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-md transition-all ${
-                    isActive
-                      ? "bg-background text-foreground shadow-xs font-semibold"
-                      : "hover:text-foreground hover:bg-background/40"
+                  `inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-md transition-all ${isActive
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "hover:text-foreground hover:bg-background/40"
                   }`
                 }
               >

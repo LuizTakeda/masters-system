@@ -1,6 +1,5 @@
-export default function ClientsPage() {
+export default function MqttAnalyticsPage() {
   return (
-    <main>
-    </main>
+    <main></main>
   );
 }

@@ -75,7 +75,11 @@ export default function RolePage() {
   return (
     <div className="space-y-4">
       {/* Top action bar above table */}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-semibold tracking-tight text-foreground">Roles</h2>
+          <p className="text-xs text-muted-foreground">Manage MQTT roles</p>
+        </div>
         <Button onClick={() => setIsCreateOpen(true)} className="gap-1.5">
           <Plus className="size-4" />
           <span>Create Role</span>

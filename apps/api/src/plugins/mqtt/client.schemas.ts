@@ -38,6 +38,7 @@ export const ListClientsVerboseResponseSchema = z.object({
             clientid: z.string().optional(),
             textname: z.string().optional(),
             textdescription: z.string().optional(),
+            disabled: z.boolean().optional(),
             roles: z.array(
               z.object({
                 rolename: z.string(),
