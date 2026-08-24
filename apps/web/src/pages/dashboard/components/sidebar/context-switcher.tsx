@@ -60,7 +60,7 @@ export function ContextSwitcher({ contexts, currentContext, setContext }: Props)
               )}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-              <span className="truncate text-xs text-muted-foreground font-medium">Workspace</span>
+              <span className="truncate text-xs text-muted-foreground font-medium">Context</span>
               <span className="truncate font-semibold text-foreground">
                 {formatContextLabel(currentContext)}
               </span>
