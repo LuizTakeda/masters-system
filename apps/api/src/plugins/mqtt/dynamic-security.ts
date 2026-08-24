@@ -105,13 +105,13 @@ async function createCommandsQueue(client: mqtt.MqttClient, messageEventStream: 
       processQueue();
     }
 
-    // Set a 5-second timeout to prevent the queue from hanging
+    // Set a 10-second timeout to prevent the queue from hanging
     timeout = setTimeout(() => {
       messageEventStream.removeListener(RESP_TOPIC, messageCallback);
       commandsItem.reject(new Error("Broker response timeout"));
       isProcessing = false;
       processQueue();
-    }, 1000 * 5);
+    }, 1000 * 10);
 
     // Listen for the next incoming response
     messageEventStream.once(RESP_TOPIC, messageCallback);

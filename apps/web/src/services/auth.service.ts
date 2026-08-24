@@ -1,5 +1,4 @@
-import { AuthMeGetResponseSchema } from "@repo/types/endpoints/auth"
-import { } from "react-router";
+import { AuthMeGetResponseSchema } from "@repo/types/endpoints/auth";
 import { apiFetch } from "../lib/api";
 
 export async function getMe() {
