@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="RIrs6YNzcyGvDWTXTvIW" name="Architecture Custom">
-        <mxGraphModel dx="905" dy="469" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1075" dy="558" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -58,7 +58,7 @@
                     <mxGeometry x="380" y="400" width="200" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="15" value="postgresql" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="440" width="80" height="80" as="geometry"/>
+                    <mxGeometry x="110" y="440" width="80" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="16" value="mongo-db" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
                     <mxGeometry x="220" y="400" width="80" height="80" as="geometry"/>
@@ -77,12 +77,6 @@
                 </mxCell>
                 <mxCell id="25" value="mqtt-device" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
                     <mxGeometry x="460" y="720" width="80" height="80" as="geometry"/>
-                </mxCell>
-                <mxCell id="37" style="edgeStyle=none;html=1;" parent="1" target="15" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="99.65999999999997" y="600" as="sourcePoint"/>
-                        <mxPoint x="99.65999999999997" y="560" as="targetPoint"/>
-                    </mxGeometry>
                 </mxCell>
                 <mxCell id="39" style="edgeStyle=none;html=1;" parent="1" edge="1">
                     <mxGeometry relative="1" as="geometry">
@@ -114,7 +108,7 @@
                         <mxPoint x="719.66" y="680" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="50" style="edgeStyle=none;html=1;startArrow=classic;startFill=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;endArrow=none;endFill=0;" parent="1" source="15" edge="1">
+                <mxCell id="50" style="edgeStyle=none;html=1;startArrow=classic;startFill=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;endArrow=none;endFill=0;entryX=0.103;entryY=1.039;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="15" edge="1" target="13">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="100" y="430" as="sourcePoint"/>
                         <mxPoint x="99.65999999999997" y="360" as="targetPoint"/>
@@ -169,6 +163,12 @@
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="499.71000000000004" y="560" as="sourcePoint"/>
                         <mxPoint x="499.71000000000004" y="600" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="75" style="edgeStyle=none;html=1;startArrow=classic;startFill=1;exitX=0.043;exitY=0.84;exitDx=0;exitDy=0;exitPerimeter=0;endArrow=none;endFill=0;entryX=0.103;entryY=1.039;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="80.41999999999999" y="598" as="sourcePoint"/>
+                        <mxPoint x="80.5" y="360" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
             </root>
