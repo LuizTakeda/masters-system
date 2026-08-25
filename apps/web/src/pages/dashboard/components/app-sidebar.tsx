@@ -7,6 +7,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useMe } from "@/hooks/use-me";
+import { logout } from "@/services/auth.service";
 import { ContextSwitcher } from "./sidebar/context-switcher";
 import { NavMain } from "./sidebar/nav-main";
 import { NavAdmin } from "./sidebar/nav-admin";
@@ -51,6 +52,16 @@ export function AppSidebar() {
     return null;
   }, [location.pathname]);
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      // ignore network errors on logout
+    } finally {
+      window.location.href = "/";
+    }
+  };
+
   if (isLoading || isError || !user) {
     return <SidebarSkeleton />;
   }
@@ -73,7 +84,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <NavUser name={user.name} email={user.email} />
+        <NavUser name={user.name} email={user.email} onLogout={handleLogout} />
       </SidebarFooter>
     </Sidebar>
   );
