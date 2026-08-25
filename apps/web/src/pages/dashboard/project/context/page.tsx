@@ -68,7 +68,7 @@ export default function ContextFilePage() {
     return null;
   }
 
-  const projectTitle = project.replace("-", " ") || project;
+  const projectTitle = project;
 
   if (isLoading) {
     return (

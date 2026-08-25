@@ -14,7 +14,7 @@ export default function RootPage() {
           alt="IoT Mesh"
           className="absolute inset-0 h-full w-full object-cover opacity-35"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/80 via-slate-950/80 to-indigo-950/80" />
+        <div className="absolute inset-0 bg-linear-to-br from-blue-950/80 via-slate-950/80 to-indigo-950/80" />
 
         {/* Minimal Title & Subtitle */}
         <div className="relative z-10 max-w-md space-y-4 text-center">

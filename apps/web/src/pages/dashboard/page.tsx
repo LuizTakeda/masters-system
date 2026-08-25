@@ -9,7 +9,7 @@ function formatProjectName(context: string) {
   if (context === "system-admin") {
     return "System Admin";
   }
-  return context.replace(/^project-/, "").toUpperCase();
+  return context.replace(/^project-/, "");
 }
 
 export default function DashboardHomePage() {
@@ -103,11 +103,10 @@ export default function DashboardHomePage() {
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div
-                      className={`flex size-10 items-center justify-center rounded-lg shadow-2xs transition-colors ${
-                        ctx.isAdmin
+                      className={`flex size-10 items-center justify-center rounded-lg shadow-2xs transition-colors ${ctx.isAdmin
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-foreground group-hover:bg-primary/10 group-hover:text-primary"
-                      }`}
+                        }`}
                     >
                       {ctx.isAdmin ? (
                         <Shield className="size-5" />
@@ -115,14 +114,14 @@ export default function DashboardHomePage() {
                         <FolderGit2 className="size-5" />
                       )}
                     </div>
-                    <ArrowUpRight className="size-4 text-muted-foreground opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all text-primary" />
+                    <ArrowUpRight className="size-4 opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all text-primary" />
                   </div>
 
                   <div className="space-y-1">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block truncate">
                       {ctx.isAdmin ? "Administration" : "Project"}
                     </span>
-                    <h4 className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors truncate">
+                    <h4 className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors truncate capitalize">
                       {ctx.label}
                     </h4>
                     <p className="text-[11px] text-muted-foreground truncate font-mono">

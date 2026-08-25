@@ -29,7 +29,7 @@ function formatContextLabel(context: string | null) {
     return "System Admin";
   }
   if (context.startsWith("project-")) {
-    return `Project: ${context.replace(/^project-/, "").toUpperCase()}`;
+    return `Project: ${context.replace(/^project-/, "")}`;
   }
   return context;
 }
@@ -75,7 +75,7 @@ export function ContextSwitcher({ contexts, currentContext }: Props) {
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
               <span className="truncate text-xs text-muted-foreground font-medium">Workspace</span>
-              <span className="truncate font-semibold text-foreground">
+              <span className="truncate font-semibold text-foreground capitalize">
                 {formatContextLabel(currentContext)}
               </span>
             </div>
@@ -131,7 +131,7 @@ export function ContextSwitcher({ contexts, currentContext }: Props) {
                           )}
                         </div>
                         <div className="grid flex-1 text-left text-sm leading-tight">
-                          <span className="truncate font-medium">{formatContextLabel(ctx)}</span>
+                          <span className="truncate font-medium capitalize">{formatContextLabel(ctx)}</span>
                           <span className="truncate text-[10px] text-muted-foreground">{ctx}</span>
                         </div>
                         {isSelected && <Check className="size-4 text-primary ml-auto" />}
