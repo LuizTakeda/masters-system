@@ -10,6 +10,7 @@ import { ContextFileViewer } from "./components/context-file-viewer";
 import { UpsertContextFileDialog } from "./components/upsert-context-file-dialog";
 import { DeleteContextFileDialog } from "./components/delete-context-file-dialog";
 import ContextFileNotFound from "./components/context-file-not-found";
+import { formatProjectString } from "@/lib/utils";
 
 export default function ContextFilePage() {
   const { project } = useParams<{ project: string }>();
@@ -68,14 +69,12 @@ export default function ContextFilePage() {
     return null;
   }
 
-  const projectTitle = project;
-
   if (isLoading) {
     return (
       <main>
         <PageHeader
           items={[
-            { label: projectTitle, to: `/dashboard/${project}` },
+            { label: formatProjectString(project), to: `/dashboard/${project}` },
             { label: "Context File" },
           ]}
         />
@@ -93,7 +92,7 @@ export default function ContextFilePage() {
     <div>
       <PageHeader
         items={[
-          { label: projectTitle, to: `/dashboard/${project}` },
+          { label: formatProjectString(project), to: `/dashboard/${project}` },
           { label: "Context File" },
         ]}
       />
