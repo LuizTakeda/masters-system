@@ -56,59 +56,9 @@ masters-system/
 
 ## 🏗️ Architecture
 
-```mermaid
-flowchart TB
-    subgraph Users
-        admin(("admin"))
-        researcher(("researcher"))
-    end
-
-    subgraph System
-        subgraph Auth
-            keycloak["keycloak"]
-
-            admin --> keycloak
-            researcher --> keycloak
-        end
-
-        subgraph Custom
-            front-end["front-end (apps/web)"]
-            back-end["back-end (apps/api)"]
-            postgres[(postgres)]
-
-            front-end <--> back-end 
-            admin --> front-end
-            researcher --> back-end
-
-            back-end --> keycloak
-            back-end --> postgres
-        end
-
-        subgraph Fiware+
-            orion-ld["orion-ld"]
-            json-iot-agent["json-iot-agent"]
-            mongo-db[("mongo-db")]
-            broker-mqtt["broker-mqtt (Mosquitto)"]
-
-            orion-ld <--> mongo-db
-            orion-ld --"schemas"--> back-end
-            back-end --"CRUD"--> orion-ld
-
-            json-iot-agent <--> mongo-db
-            json-iot-agent --> orion-ld
-            json-iot-agent <--> broker-mqtt
-            back-end -- "CRUD" --> json-iot-agent
-
-            broker-mqtt -- "device auth"--> back-end
-        end
-    end
-
-    subgraph Devices
-        mqtt-device("mqtt-device")
-
-        mqtt-device --> broker-mqtt
-    end
-```
+<p align="center">
+  <img src="imgs/architecture.svg" alt="System Architecture" width="100%" />
+</p>
 
 ---
 
