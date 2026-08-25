@@ -75,7 +75,7 @@ export default function PageHeader({ items, children, actions, className }: Prop
               </BreadcrumbList>
             </Breadcrumb>
           ) : (
-            <div className="text-base font-medium text-foreground flex items-center">
+            <div className="text-base font-medium text-foreground flex items-center capitalize">
               {children}
             </div>
           )}

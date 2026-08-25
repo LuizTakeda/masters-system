@@ -7,7 +7,7 @@ export default function ProjectHomePage() {
   return (
     <main>
       <PageHeader>
-        {project}
+        {project?.replace("-", " ")}
       </PageHeader>
     </main>
   );
