@@ -43,7 +43,7 @@ export default function PageHeader({ items, children, actions, className }: Prop
 
                   return (
                     <Fragment key={index}>
-                      <BreadcrumbItem>
+                      <BreadcrumbItem className="capitalize">
                         {isLast ? (
                           <BreadcrumbPage className="text-base font-medium text-foreground">
                             {item.label}

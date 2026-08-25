@@ -34,7 +34,8 @@ export async function invalidateContextFile(project?: string) {
 export function useContextFile(project?: string | null) {
   const key = getContextFileKey(project);
   const { data, error, isLoading, mutate } = useSWR(key, () =>
-    project ? apiGetContextFile(project) : null
+    project ? apiGetContextFile(project) : null,
+    { shouldRetryOnError: false, revalidateOnFocus: false }
   );
 
   const save = async (body: UpsertContextFileBodyType) => {

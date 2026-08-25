@@ -21,8 +21,8 @@ export function NavProject({ project }: Props) {
       end: true,
     },
     {
-      title: "Context",
-      url: `/dashboard/${encodeURIComponent(project)}/context`,
+      title: "Context File",
+      url: `/dashboard/${encodeURIComponent(project)}/context-file`,
       icon: Layers,
       end: false,
     },

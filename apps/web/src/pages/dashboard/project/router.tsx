@@ -9,6 +9,6 @@ export const ProjectDashboardRouter: RouteObject[] = [
   },
   {
     path: "context-file",
-    element: <ContextFilePage />
-  }
+    element: <ContextFilePage />,
+  },
 ];
