@@ -1,6 +1,6 @@
 import PageHeader from "../components/page-header";
 import { Link } from "react-router";
-import { ArrowRight, Server, Shield } from "lucide-react";
+import { ArrowRight, FileCode2, Server, Shield } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -47,9 +47,28 @@ export default function AdminHomePage() {
               <ArrowRight className="size-3.5" />
             </Link>
           </div>
+
+          <div className="flex flex-col justify-between p-5 rounded-xl border bg-card text-card-foreground shadow-2xs space-y-4">
+            <div className="space-y-2">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <FileCode2 className="size-5" />
+              </div>
+              <h3 className="font-bold text-base text-foreground">Context File</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Manage global JSON-LD @context schemas, ontologies, and FIWARE Orion-LD entity mappings.
+              </p>
+            </div>
+
+            <Link
+              to="/dashboard/admin/context-file"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit gap-1.5")}
+            >
+              <span>Access Context File</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

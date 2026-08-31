@@ -6,49 +6,28 @@ import {
   upsertContextFile as apiUpsertContextFile,
 } from "../../services/fiware/context-file.service";
 
-export const CONTEXT_FILE_BASE_KEY = "/api/fiware/context-file";
+export const CONTEXT_FILE_KEY = "/api/fiware/context-file";
 
-export const getContextFileKey = (project?: string | null) =>
-  project ? [CONTEXT_FILE_BASE_KEY, project] : null;
-
-export async function invalidateContextFile(project?: string) {
-  if (project) {
-    return await globalMutate(getContextFileKey(project), undefined, { revalidate: true });
-  }
-
-  return await globalMutate(
-    (key) => {
-      if (typeof key === "string") {
-        return key.startsWith(CONTEXT_FILE_BASE_KEY);
-      }
-      if (Array.isArray(key) && typeof key[0] === "string") {
-        return key[0].startsWith(CONTEXT_FILE_BASE_KEY);
-      }
-      return false;
-    },
-    undefined,
-    { revalidate: true }
-  );
+export async function invalidateContextFile() {
+  return await globalMutate(CONTEXT_FILE_KEY, undefined, { revalidate: true });
 }
 
-export function useContextFile(project?: string | null) {
-  const key = getContextFileKey(project);
-  const { data, error, isLoading, mutate } = useSWR(key, () =>
-    project ? apiGetContextFile(project) : null,
+export function useContextFile() {
+  const { data, error, isLoading, mutate } = useSWR(
+    CONTEXT_FILE_KEY,
+    apiGetContextFile,
     { shouldRetryOnError: false, revalidateOnFocus: false }
   );
 
   const save = async (body: UpsertContextFileBodyType) => {
-    if (!project) throw new Error("Project parameter is required");
-    const res = await apiUpsertContextFile(project, body);
-    await invalidateContextFile(project);
+    const res = await apiUpsertContextFile(body);
+    await invalidateContextFile();
     return res;
   };
 
   const remove = async () => {
-    if (!project) throw new Error("Project parameter is required");
-    const res = await apiDeleteContextFile(project);
-    await invalidateContextFile(project);
+    const res = await apiDeleteContextFile();
+    await invalidateContextFile();
     return res;
   };
 
@@ -62,4 +41,3 @@ export function useContextFile(project?: string | null) {
     deleteContextFile: remove,
   };
 }
-

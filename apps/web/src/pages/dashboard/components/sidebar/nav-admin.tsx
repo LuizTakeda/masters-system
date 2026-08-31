@@ -1,5 +1,5 @@
 import { NavLink } from "react-router";
-import { Home, Server } from "lucide-react";
+import { FileCode2, Home, Server } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -19,6 +19,12 @@ const adminItems = [
     title: "MQTT Broker",
     url: "/dashboard/admin/mqtt-broker",
     icon: Server,
+    end: false,
+  },
+  {
+    title: "Context File",
+    url: "/dashboard/admin/context-file",
+    icon: FileCode2,
     end: false,
   },
 ];

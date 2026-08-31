@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useParams } from "react-router";
 import { toast } from "@/components/ui/toast";
 import { useContextFile } from "@/hooks/fiware/use-context-file";
 import PageHeader from "@/pages/dashboard/components/page-header";
@@ -10,17 +9,14 @@ import { ContextFileViewer } from "./components/context-file-viewer";
 import { UpsertContextFileDialog } from "./components/upsert-context-file-dialog";
 import { DeleteContextFileDialog } from "./components/delete-context-file-dialog";
 import ContextFileNotFound from "./components/context-file-not-found";
-import { formatProjectString } from "@/lib/utils";
 
-export default function ContextFilePage() {
-  const { project } = useParams<{ project: string }>();
-
+export default function AdminContextFilePage() {
   const {
     contextFile,
     isLoading,
     upsertContextFile,
     deleteContextFile,
-  } = useContextFile(project);
+  } = useContextFile();
 
   const [isUpsertOpen, setIsUpsertOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -30,7 +26,7 @@ export default function ContextFilePage() {
       const res = await upsertContextFile(body);
       toast.add({
         title: "Context file saved",
-        description: res?.message || "FIWARE context file saved successfully.",
+        description: res?.message || "FIWARE global context file saved successfully.",
         type: "success",
       });
       setIsUpsertOpen(false);
@@ -50,7 +46,7 @@ export default function ContextFilePage() {
       const res = await deleteContextFile();
       toast.add({
         title: "Context file deleted",
-        description: res?.message || "FIWARE context file was removed.",
+        description: res?.message || "FIWARE global context file was removed.",
         type: "success",
       });
       setIsDeleteOpen(false);
@@ -65,16 +61,12 @@ export default function ContextFilePage() {
     }
   };
 
-  if (!project) {
-    return null;
-  }
-
   if (isLoading) {
     return (
       <main>
         <PageHeader
           items={[
-            { label: formatProjectString(project), to: `/dashboard/${project}` },
+            { label: "Admin", to: "/dashboard/admin" },
             { label: "Context File" },
           ]}
         />
@@ -92,21 +84,19 @@ export default function ContextFilePage() {
     <div>
       <PageHeader
         items={[
-          { label: formatProjectString(project), to: `/dashboard/${project}` },
+          { label: "Admin", to: "/dashboard/admin" },
           { label: "Context File" },
         ]}
       />
 
       {contextFile ? (
         <ContextFileViewer
-          project={project}
           contextFile={contextFile}
           onEdit={() => setIsUpsertOpen(true)}
           onDelete={() => setIsDeleteOpen(true)}
         />
       ) : (
         <ContextFileNotFound
-          project={project}
           onOpen={() => setIsUpsertOpen(true)}
         />
       )}
@@ -121,7 +111,6 @@ export default function ContextFilePage() {
 
       {/* Delete Confirmation Alert Dialog */}
       <DeleteContextFileDialog
-        project={project}
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
         onConfirm={handleDelete}
@@ -129,3 +118,4 @@ export default function ContextFilePage() {
     </div>
   );
 }
+
