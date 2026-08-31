@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, HelpCircle } from "lucide-react";
 
 export default function LearnMore() {
   return (
@@ -36,3 +36,4 @@ export default function LearnMore() {
     </div>
   );
 }
+

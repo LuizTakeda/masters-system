@@ -15,14 +15,12 @@ import {
 import type { GetContextFileResponseType } from "@repo/types/endpoints/fiware/context-file";
 
 type Props = {
-  project: string;
   contextFile: GetContextFileResponseType;
   onEdit: () => void;
   onDelete: () => void;
 };
 
 export function ContextFileViewer({
-  project,
   contextFile,
   onEdit,
   onDelete,
@@ -50,7 +48,7 @@ export function ContextFileViewer({
     }
   };
 
-  const rawUrl = `/api/fiware/context-file/${encodeURIComponent(project)}/context.jsonld`;
+  const rawUrl = "/api/fiware/context-file/context.jsonld";
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
@@ -64,14 +62,14 @@ export function ContextFileViewer({
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-lg font-bold tracking-tight text-foreground">
-                  {contextFile.name || `Project Context File`}
+                  {contextFile.name || "Global Context File"}
                 </h3>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                  <span>v{contextFile.version}</span>
+                  <span>Active</span>
                 </span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">
-                {contextFile.description || "JSON-LD context file defining FIWARE NGSI-LD entities."}
+                Global JSON-LD @context file serving shared entity schemas and ontologies for FIWARE NGSI-LD.
               </p>
             </div>
           </div>

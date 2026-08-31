@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import { Check, Code2, FileCode2, Loader2, Save } from "lucide-react";
 import type {
@@ -55,8 +54,6 @@ function UpsertContextFileForm({
 }) {
   const isEditing = Boolean(initialData);
 
-  const [name, setName] = useState(() => initialData?.name ?? "");
-  const [description, setDescription] = useState(() => initialData?.description ?? "");
   const [fileContent, setFileContent] = useState(() =>
     initialData?.file ? JSON.stringify(initialData.file, null, 2) : DEFAULT_CONTEXT_TEMPLATE
   );
@@ -108,8 +105,6 @@ function UpsertContextFileForm({
     setJsonError(null);
 
     const payload: UpsertContextFileBodyType = {
-      name: name.trim() || undefined,
-      description: description.trim() || undefined,
       file: parsedFile,
     };
 
@@ -130,44 +125,18 @@ function UpsertContextFileForm({
           </div>
           <div>
             <DialogTitle>
-              {isEditing ? "Update Context File" : "Create Context File"}
+              {isEditing ? "Update Global Context File" : "Create Global Context File"}
             </DialogTitle>
             <DialogDescription>
               {isEditing
-                ? "Update the JSON-LD mapping and ontologies for this project. The version will automatically increment."
-                : "Define the JSON-LD @context ontologies, attributes, and schemas for your NGSI-LD project."}
+                ? "Update the global JSON-LD mapping and ontologies used by FIWARE Orion-LD."
+                : "Define the global JSON-LD @context ontologies, attributes, and schemas for FIWARE NGSI-LD."}
             </DialogDescription>
           </div>
         </div>
       </DialogHeader>
 
       <div className="space-y-3 text-xs">
-        <div className="space-y-1.5">
-          <label className="font-medium text-foreground">
-            Context Name <span className="text-muted-foreground">(Optional)</span>
-          </label>
-          <Input
-            placeholder="e.g. Smart Agriculture Ontologies v1"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            disabled={isSubmitting}
-            className="h-8 text-xs"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="font-medium text-foreground">
-            Description <span className="text-muted-foreground">(Optional)</span>
-          </label>
-          <Input
-            placeholder="e.g. Core IoT telemetry and smart device schemas"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            disabled={isSubmitting}
-            className="h-8 text-xs"
-          />
-        </div>
-
         {/* JSON Content Editor */}
         <div className="space-y-1.5 pt-1">
           <div className="flex items-center justify-between">
@@ -190,7 +159,7 @@ function UpsertContextFileForm({
           </div>
 
           <textarea
-            rows={12}
+            rows={14}
             value={fileContent}
             onChange={(e) => {
               setFileContent(e.target.value);

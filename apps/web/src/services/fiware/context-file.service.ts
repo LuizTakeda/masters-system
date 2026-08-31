@@ -5,14 +5,14 @@ import {
 } from "@repo/types/endpoints/fiware/context-file";
 import { apiFetch } from "../../lib/api";
 
-export async function getContextFile(project: string) {
-  return await apiFetch(`/api/fiware/context-file/${encodeURIComponent(project)}`, {
+export async function getContextFile() {
+  return await apiFetch("/api/fiware/context-file", {
     responseSchema: GetContextFileResponseSchema,
   });
 }
 
-export async function upsertContextFile(project: string, body: UpsertContextFileBodyType) {
-  return await apiFetch(`/api/fiware/context-file/${encodeURIComponent(project)}`, {
+export async function upsertContextFile(body: UpsertContextFileBodyType) {
+  return await apiFetch("/api/fiware/context-file", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -22,10 +22,9 @@ export async function upsertContextFile(project: string, body: UpsertContextFile
   });
 }
 
-export async function deleteContextFile(project: string) {
-  return await apiFetch(`/api/fiware/context-file/${encodeURIComponent(project)}`, {
+export async function deleteContextFile() {
+  return await apiFetch("/api/fiware/context-file", {
     method: "DELETE",
     responseSchema: ResponseMessageSchema,
   });
 }
-

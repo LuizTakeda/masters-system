@@ -12,14 +12,12 @@ import {
 import { Loader2, Trash2 } from "lucide-react";
 
 type Props = {
-  project: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<void>;
 };
 
 export function DeleteContextFileDialog({
-  project,
   open,
   onOpenChange,
   onConfirm,
@@ -40,11 +38,10 @@ export function DeleteContextFileDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Context File</AlertDialogTitle>
+          <AlertDialogTitle>Delete Global Context File</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete the FIWARE context file for project{" "}
-            <strong className="text-foreground font-semibold">{project}</strong>?
-            This will permanently remove the JSON-LD mapping and ontologies used by NGSI-LD entities in this project.
+            Are you sure you want to delete the global FIWARE context file?
+            This will permanently remove the JSON-LD mapping and ontologies used by NGSI-LD entities across the system.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
