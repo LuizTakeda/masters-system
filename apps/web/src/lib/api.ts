@@ -44,7 +44,8 @@ export async function apiFetch<TSchema extends z.ZodType, TData = z.infer<TSchem
   const doRequest = async () => {
     const response = await fetch(input, init);
 
-    const isJson = response.headers.get("content-type")?.includes("application/json");
+    const contentType = response.headers.get("content-type") || "";
+    const isJson = contentType.includes("json");
     const data = isJson ? await response.json() : null;
 
     if (!response.ok) {
