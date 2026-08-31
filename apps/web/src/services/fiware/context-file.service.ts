@@ -3,11 +3,18 @@ import {
   GetContextFileResponseSchema,
   type UpsertContextFileBodyType,
 } from "@repo/types/endpoints/fiware/context-file";
+import z from "zod";
 import { apiFetch } from "../../lib/api";
 
 export async function getContextFile() {
   return await apiFetch("/api/fiware/context-file", {
     responseSchema: GetContextFileResponseSchema,
+  });
+}
+
+export async function getRawContextFile() {
+  return await apiFetch("/api/fiware/context-file/context.jsonld", {
+    responseSchema: z.record(z.string(), z.any()),
   });
 }
 

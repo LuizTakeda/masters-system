@@ -1,5 +1,5 @@
 import { NavLink } from "react-router";
-import { Home } from "lucide-react";
+import { FileCode2, Home } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -19,6 +19,12 @@ export function NavProject({ project }: Props) {
       url: `/dashboard/${encodeURIComponent(project)}`,
       icon: Home,
       end: true,
+    },
+    {
+      title: "Context File",
+      url: `/dashboard/${encodeURIComponent(project)}/context-file`,
+      icon: FileCode2,
+      end: false,
     },
   ];
 

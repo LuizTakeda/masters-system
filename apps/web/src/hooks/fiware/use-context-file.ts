@@ -3,13 +3,16 @@ import type { UpsertContextFileBodyType } from "@repo/types/endpoints/fiware/con
 import {
   deleteContextFile as apiDeleteContextFile,
   getContextFile as apiGetContextFile,
+  getRawContextFile as apiGetRawContextFile,
   upsertContextFile as apiUpsertContextFile,
 } from "../../services/fiware/context-file.service";
 
 export const CONTEXT_FILE_KEY = "/api/fiware/context-file";
+export const RAW_CONTEXT_FILE_KEY = "/api/fiware/context-file/context.jsonld";
 
 export async function invalidateContextFile() {
-  return await globalMutate(CONTEXT_FILE_KEY, undefined, { revalidate: true });
+  await globalMutate(CONTEXT_FILE_KEY, undefined, { revalidate: true });
+  await globalMutate(RAW_CONTEXT_FILE_KEY, undefined, { revalidate: true });
 }
 
 export function useContextFile() {
@@ -39,5 +42,20 @@ export function useContextFile() {
     mutate,
     upsertContextFile: save,
     deleteContextFile: remove,
+  };
+}
+
+export function usePublicContextFile() {
+  const { data, error, isLoading, mutate } = useSWR(
+    RAW_CONTEXT_FILE_KEY,
+    apiGetRawContextFile,
+    { shouldRetryOnError: false, revalidateOnFocus: false }
+  );
+
+  return {
+    rawContext: data,
+    isLoading,
+    isError: error,
+    mutate,
   };
 }
