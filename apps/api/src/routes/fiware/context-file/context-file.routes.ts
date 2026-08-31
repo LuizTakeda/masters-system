@@ -1,25 +1,24 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import z from "zod";
 import { HttpErrorSchema, ResponseMessageSchema } from "@repo/types/commons";
 import {
-  ContextFileProjectParamsSchema,
   GetContextFileResponseSchema,
   UpsertContextFileBodySchema,
 } from "@repo/types/endpoints/fiware/context-file";
 
 const contextFileRoutes: FastifyPluginAsyncZod = async (fastify) => {
   // ==========================================
-  // GET /:project (Get Project Context File)
+  // GET (Get Global Context File)
   // ==========================================
   fastify.get(
-    "/:project",
+    "",
     {
-      onRequest: [fastify.authenticateProject],
+      onRequest: [fastify.authenticateAdmin],
       schema: {
         tags: ["FIWARE Context File", "FIWARE"],
-        summary: "Get Project FIWARE Context File",
-        description: "Retrieves the JSON-LD @context file and metadata associated with the specified project.",
+        summary: "Get Global FIWARE Context File",
+        description: "Retrieves the global JSON-LD @context file and metadata.",
         security: [{ bearerAuth: [] }],
-        params: ContextFileProjectParamsSchema,
         response: {
           200: GetContextFileResponseSchema,
           404: HttpErrorSchema,
@@ -29,80 +28,77 @@ const contextFileRoutes: FastifyPluginAsyncZod = async (fastify) => {
     },
     async (request, reply) => {
       try {
-        const { project } = request.params;
-
-        const contextFile = await fastify.prisma.projectContextFile.findUnique({
-          where: { project },
+        const contextFile = await fastify.prisma.fiwareContextFile.findUnique({
+          where: { name: "global" },
         });
 
         if (!contextFile) {
-          return reply.notFound(`No context file found for project '${project}'`);
+          return reply.notFound("No global context file found");
         }
 
         return {
           name: contextFile.name,
-          description: contextFile.description,
-          version: contextFile.version,
           file: contextFile.file as Record<string, any>,
           createdAt: contextFile.createdAt,
           updatedAt: contextFile.updatedAt,
         };
       } catch (error) {
-        request.log.error(error, "Failed to retrieve project context file");
-        return reply.internalServerError("Failed to retrieve project context file");
+        request.log.error(error, "Failed to retrieve global context file");
+        return reply.internalServerError("Failed to retrieve global context file");
       }
     }
   );
 
   // ==========================================
-  // GET /:project/context.jsonld (Raw JSON-LD)
+  // GET /context.jsonld (Raw JSON-LD)
   // ==========================================
   fastify.get(
-    "/:project/context.jsonld",
+    "/context.jsonld",
     {
       schema: {
         tags: ["FIWARE Context File", "FIWARE"],
-        summary: "Serve Raw JSON-LD Context File",
-        description: "Serves the raw JSON-LD @context file with application/ld+json content type for NGSI-LD brokers and IoT clients.",
-        params: ContextFileProjectParamsSchema,
+        summary: "Serve Raw Global JSON-LD Context File",
+        description: "Serves the raw global JSON-LD @context file with application/ld+json content type for NGSI-LD brokers and IoT clients.",
+        response: {
+          200: z.record(z.string(), z.any()).describe("Raw JSON-LD @context object"),
+          404: HttpErrorSchema,
+          500: HttpErrorSchema,
+        },
       },
     },
     async (request, reply) => {
       try {
-        const { project } = request.params;
-        const contextFile = await fastify.prisma.projectContextFile.findUnique({
-          where: { project },
+        const contextFile = await fastify.prisma.fiwareContextFile.findUnique({
+          where: { name: "global" },
         });
 
         if (!contextFile) {
-          return reply.notFound(`No context file found for project '${project}'`);
+          return reply.notFound("No global context file found");
         }
 
         reply.header("Content-Type", "application/ld+json; charset=utf-8");
-        reply.header("ETag", `"${contextFile.id}-v${contextFile.version}"`);
         reply.header("Last-Modified", contextFile.updatedAt.toUTCString());
 
         return contextFile.file;
       } catch (error) {
-        request.log.error(error, "Failed to serve raw context file");
-        return reply.internalServerError("Failed to serve raw context file");
+        request.log.error(error, "Failed to serve raw global context file");
+        return reply.internalServerError("Failed to serve raw global context file");
       }
     }
   );
 
   // ==========================================
-  // POST /:project (Create or Update Context File)
+  // POST (Create or Update Context File)
   // ==========================================
   fastify.post(
-    "/:project",
+    "",
     {
-      onRequest: [fastify.authenticateProject],
+      onRequest: [fastify.authenticateAdmin],
       schema: {
         tags: ["FIWARE Context File", "FIWARE"],
-        summary: "Create or Update Project FIWARE Context File",
-        description: "Upserts the JSON-LD @context file for the given project. Automatically increments version on update.",
+        summary: "Create or Update Global FIWARE Context File",
+        description: "Upserts the global JSON-LD @context file.",
         security: [{ bearerAuth: [] }],
-        params: ContextFileProjectParamsSchema,
         body: UpsertContextFileBodySchema,
         response: {
           200: ResponseMessageSchema,
@@ -112,53 +108,41 @@ const contextFileRoutes: FastifyPluginAsyncZod = async (fastify) => {
     },
     async (request, reply) => {
       try {
-        const { project } = request.params;
-        const { name, description, file } = request.body;
+        const { file } = request.body;
 
-        const existing = await fastify.prisma.projectContextFile.findUnique({
-          where: { project },
-        });
-
-        const contextFile = await fastify.prisma.projectContextFile.upsert({
-          where: { project },
+        await fastify.prisma.fiwareContextFile.upsert({
+          where: { name: "global" },
           create: {
-            project,
-            name: name ?? null,
-            description: description ?? null,
+            name: "global",
             file,
-            version: 1,
           },
           update: {
-            name: name ?? null,
-            description: description ?? null,
             file,
-            version: existing ? existing.version + 1 : 1,
           },
         });
 
         return {
-          message: "Context updated"
+          message: "Global context file updated successfully.",
         };
       } catch (error) {
-        request.log.error(error, "Failed to save project context file");
-        return reply.internalServerError("Failed to save project context file");
+        request.log.error(error, "Failed to save global context file");
+        return reply.internalServerError("Failed to save global context file");
       }
     }
   );
 
   // ==========================================
-  // DELETE /:project (Delete Context File)
+  // DELETE (Delete Context File)
   // ==========================================
   fastify.delete(
-    "/:project",
+    "",
     {
-      onRequest: [fastify.authenticateProject],
+      onRequest: [fastify.authenticateAdmin],
       schema: {
         tags: ["FIWARE Context File", "FIWARE"],
-        summary: "Delete Project FIWARE Context File",
-        description: "Deletes the context file for the specified project.",
+        summary: "Delete Global FIWARE Context File",
+        description: "Deletes the global JSON-LD @context file.",
         security: [{ bearerAuth: [] }],
-        params: ContextFileProjectParamsSchema,
         response: {
           200: ResponseMessageSchema,
           404: HttpErrorSchema,
@@ -168,26 +152,24 @@ const contextFileRoutes: FastifyPluginAsyncZod = async (fastify) => {
     },
     async (request, reply) => {
       try {
-        const { project } = request.params;
-
-        const existing = await fastify.prisma.projectContextFile.findUnique({
-          where: { project },
+        const existing = await fastify.prisma.fiwareContextFile.findUnique({
+          where: { name: "global" },
         });
 
         if (!existing) {
-          return reply.notFound(`No context file found for project '${project}'`);
+          return reply.notFound("No global context file found");
         }
 
-        await fastify.prisma.projectContextFile.delete({
-          where: { project },
+        await fastify.prisma.fiwareContextFile.delete({
+          where: { name: "global" },
         });
 
         return {
-          message: `Context file for project '${project}' was deleted successfully.`,
+          message: "Global context file was deleted successfully.",
         };
       } catch (error) {
-        request.log.error(error, "Failed to delete project context file");
-        return reply.internalServerError("Failed to delete project context file");
+        request.log.error(error, "Failed to delete global context file");
+        return reply.internalServerError("Failed to delete global context file");
       }
     }
   );
