@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--use-system-ca' tsx watch src/main.ts | pino-prettier",
     "build": "pkgroll",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev"
   },
   "keywords": [],
   "author": "",
