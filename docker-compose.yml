@@ -20,8 +20,8 @@ services:
   mongo-db:
     image: mongo:5.0
     hostname: mongo-db
-    expose:
-      - "27017"
+    ports:
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:
@@ -45,12 +45,10 @@ services:
 
   orion-ld:
     image: fiware/orion-ld:1.12.0
-    hostname: orion-ld
-    ports:
-      - "1026:1026"
+    network_mode: "host"
     environment:
       - ORIONLD_TROE=FALSE
-      - ORIONLD_MONGO_HOST=mongo-db
+      - ORIONLD_MONGO_HOST=localhost
       - ORIONLD_MULTI_SERVICE=TRUE
     command: -logLevel DEBUG
     depends_on:
@@ -109,10 +107,12 @@ services:
   json-iot-agent:
     image: fiware/iotagent-json:3.14.0
     hostname: json-iot-agent
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "4041:4041"
     environment:
-      - IOTA_CB_HOST=orion-ld
+      - IOTA_CB_HOST=host.docker.internal
       - IOTA_CB_PORT=1026
       - IOTA_NORTH_PORT=4041
       - IOTA_REGISTRY_TYPE=mongodb
@@ -126,7 +126,6 @@ services:
     depends_on:
       - mongo-db
       - mqtt-broker
-      - orion-ld
 
   ##################################################
   # Auth
