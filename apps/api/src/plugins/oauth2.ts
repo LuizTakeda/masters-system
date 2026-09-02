@@ -1,11 +1,11 @@
-import fp from "fastify-plugin"
+import fp from "fastify-plugin";
 import fastifyCookie from "@fastify/cookie";
 import fastifyOAuth2 from "@fastify/oauth2";
-import { AuthorizationCode } from "simple-oauth2"
+import { AuthorizationCode } from "simple-oauth2";
 
-import { type OAuth2Namespace } from '@fastify/oauth2';
+import { type OAuth2Namespace } from "@fastify/oauth2";
 
-declare module 'fastify' {
+declare module "fastify" {
   interface FastifyInstance {
     keycloakOAuth2: OAuth2Namespace & { oauth2: AuthorizationCode };
   }
