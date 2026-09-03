@@ -81,8 +81,6 @@ services:
       BACKEND_DB: backend_db
       BACKEND_USER: backend
       BACKEND_PASSWORD: 123
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./volumes/postgresql/init.sh:/docker-entrypoint-initdb.d/init.sh
@@ -124,9 +122,12 @@ services:
       - IOTA_HTTP_PORT=7896
       - IOTA_PROVIDER_URL=http://json-iot-agent:4041
       - IOTA_CB_NGSI_VERSION=ld
+      - IOTA_JSON_LD_CONTEXT=http://workspace:3000/api/fiware/context-file/context.jsonld
       - IOTA_MQTT_HOST=mqtt-broker
       - IOTA_MQTT_PORT=1883
       - IOTA_AMQP_DISABLED=true
+      - IOTA_MQTT_USERNAME=iot-agent
+      - IOTA_MQTT_PASSWORD=0123456789
     depends_on:
       - mongo-db
       - mqtt-broker

@@ -13,7 +13,8 @@
         "esbenp.prettier-vscode",
         "Prisma.prisma",
         "bradlc.vscode-tailwindcss",
-        "YoavBls.pretty-ts-errors"
+        "YoavBls.pretty-ts-errors",
+        "google.google-antigravity"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
