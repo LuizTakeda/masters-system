@@ -4,7 +4,7 @@
   "description": "",
   "main": "./dist/main.js",
   "scripts": {
-    "dev": "NODE_OPTIONS='--use-system-ca' tsx watch src/main.ts | pino-prettier",
+    "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 tsx watch src/main.ts | pino-prettier",
     "build": "pkgroll",
     "lint": "eslint .",
     "generate": "prisma generate",

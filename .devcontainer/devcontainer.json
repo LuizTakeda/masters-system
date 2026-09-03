@@ -1,0 +1,30 @@
+{
+  "name": "Masters System Dev Workspace",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.extend.yml"
+  ],
+  "service": "workspace",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "Prisma.prisma",
+        "bradlc.vscode-tailwindcss",
+        "YoavBls.pretty-ts-errors",
+        "google.google-antigravity"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "postCreateCommand": "CI=true pnpm install",
+  "forwardPorts": [80, 443, 1026, 1883, 8080, 8081, 8082, 3000, 5173],
+  "remoteUser": "root"
+}
+

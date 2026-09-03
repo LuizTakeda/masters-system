@@ -1,0 +1,18 @@
+services:
+  workspace:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace:cached
+      - vscode-extensions:/root/.vscode-server/extensions
+      - antigravity-data:/root/.gemini
+    command: sleep infinity
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - NODE_EXTRA_CA_CERTS=/workspace/volumes/nginx/certs/auth.system.local+1.pem
+
+volumes:
+  vscode-extensions:
+  antigravity-data:
