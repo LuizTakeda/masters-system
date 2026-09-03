@@ -53,8 +53,6 @@ services:
   orion-ld:
     image: fiware/orion-ld:1.12.0
     hostname: orion-ld
-    ports:
-      - "1026:1026"
     environment:
       - ORIONLD_TROE=FALSE
       - ORIONLD_MONGO_HOST=mongo-db
@@ -111,8 +109,6 @@ services:
   json-iot-agent:
     image: fiware/iotagent-json:3.14.0
     hostname: json-iot-agent
-    ports:
-      - "4041:4041"
     environment:
       - IOTA_CB_HOST=orion-ld
       - IOTA_CB_PORT=1026
