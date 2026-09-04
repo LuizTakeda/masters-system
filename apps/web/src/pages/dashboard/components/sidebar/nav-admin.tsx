@@ -1,5 +1,5 @@
 import { NavLink } from "react-router";
-import { FileCode2, Home, Server } from "lucide-react";
+import { FileCode2, Home, Router, Server } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -27,6 +27,12 @@ const adminItems = [
     icon: FileCode2,
     end: false,
   },
+  {
+    title: "Iot Agent Json",
+    url: "/dashboard/admin/iot-agent-json",
+    icon: Router,
+    end: false,
+  },
 ];
 
 export function NavAdmin() {
@@ -40,10 +46,7 @@ export function NavAdmin() {
               <SidebarMenuItem key={item.title}>
                 <NavLink to={item.url} end={item.end} className="w-full">
                   {({ isActive }) => (
-                    <SidebarMenuButton
-                      tooltip={item.title}
-                      isActive={isActive}
-                    >
+                    <SidebarMenuButton tooltip={item.title} isActive={isActive}>
                       <Icon className="size-4" />
                       <span>{item.title}</span>
                     </SidebarMenuButton>
