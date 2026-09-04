@@ -1,5 +1,5 @@
 import { NavLink } from "react-router";
-import { FileCode2, Home } from "lucide-react";
+import { Cpu, FileCode2, Home } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -21,6 +21,12 @@ export function NavProject({ project }: Props) {
       end: true,
     },
     {
+      title: "Devices",
+      url: `/dashboard/${encodeURIComponent(project)}/device`,
+      icon: Cpu,
+      end: false,
+    },
+    {
       title: "Context File",
       url: `/dashboard/${encodeURIComponent(project)}/context-file`,
       icon: FileCode2,
@@ -38,10 +44,7 @@ export function NavProject({ project }: Props) {
               <SidebarMenuItem key={item.title}>
                 <NavLink to={item.url} end={item.end} className="w-full">
                   {({ isActive }) => (
-                    <SidebarMenuButton
-                      tooltip={item.title}
-                      isActive={isActive}
-                    >
+                    <SidebarMenuButton tooltip={item.title} isActive={isActive}>
                       <Icon className="size-4" />
                       <span>{item.title}</span>
                     </SidebarMenuButton>
