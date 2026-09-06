@@ -2,6 +2,7 @@ import type { RouteObject } from "react-router";
 import ProjectHomePage from "./page";
 import ProjectContextFilePage from "./context-file/page";
 import ProjectDevicePage from "./device/page";
+import EntitiesPage from "./entities/page";
 
 export const ProjectDashboardRouter: RouteObject[] = [
   {
@@ -13,8 +14,8 @@ export const ProjectDashboardRouter: RouteObject[] = [
     element: <ProjectDevicePage />,
   },
   {
-    path: "devices",
-    element: <ProjectDevicePage />,
+    path: "entitie",
+    element: <EntitiesPage />,
   },
   {
     path: "context-file",

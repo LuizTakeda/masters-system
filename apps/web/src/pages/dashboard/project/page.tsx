@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router";
 import PageHeader from "../components/page-header";
-import { ArrowRight, Cpu, FileCode2, FolderGit2 } from "lucide-react";
+import { ArrowRight, Cpu, Database, FileCode2, FolderGit2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn, formatProjectString } from "@/lib/utils";
 
@@ -55,6 +55,33 @@ export default function ProjectHomePage() {
               )}
             >
               <span>Manage Devices</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+
+          <div className="flex flex-col justify-between p-5 rounded-xl border bg-card text-card-foreground shadow-2xs space-y-4">
+            <div className="space-y-2">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Database className="size-5" />
+              </div>
+              <h3 className="font-bold text-base text-foreground">
+                NGSI-LD Entities
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Explore digital twin entities in real-time cards, inspect
+                telemetry properties, and filter by registered types with live
+                polling.
+              </p>
+            </div>
+
+            <Link
+              to={`/dashboard/${encodeURIComponent(project)}/entities`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "w-fit gap-1.5",
+              )}
+            >
+              <span>Explore Entities</span>
               <ArrowRight className="size-3.5" />
             </Link>
           </div>
