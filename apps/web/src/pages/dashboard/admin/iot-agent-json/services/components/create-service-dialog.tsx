@@ -76,6 +76,9 @@ export function CreateServiceDialog({
       resource: trimmedResource,
       entity_type: entityType.trim() || "Thing",
       cbroker: cbroker.trim() || undefined,
+      attributes: [],
+      static_attributes: [],
+      commands: [],
     };
 
     try {
@@ -113,8 +116,8 @@ export function CreateServiceDialog({
               <DialogTitle>Provision Service Group</DialogTitle>
               <DialogDescription>
                 Create a new IoT Agent service group for tenant{" "}
-                <strong className="text-foreground font-mono">{tenant}</strong>
-                {" "}on path{" "}
+                <strong className="text-foreground font-mono">{tenant}</strong>{" "}
+                on path{" "}
                 <code className="bg-muted px-1 py-0.5 rounded text-[11px] font-mono text-foreground">
                   {servicePath}
                 </code>
