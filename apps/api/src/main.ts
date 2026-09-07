@@ -1,28 +1,36 @@
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
-import fastify, { type FastifyError, type FastifyReply, type FastifyRequest } from 'fastify'
-import autoload from "@fastify/autoload"
-import swaggerPlugin from "./plugins/swagger.js"
-import cors from "./plugins/cors.js"
-import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod'
-import prismaPlugin from "@/plugins/prisma.js"
-import fastifySensible from "@fastify/sensible"
-import envPlugin from "@plugins/env.js"
-import oauth2Plugin from "@plugins/oauth2.js"
-import josePlugin from "@plugins/jose.js"
-import mqttPlugin from "@/plugins/mqtt/index.js"
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+import fastify, {
+  type FastifyError,
+  type FastifyReply,
+  type FastifyRequest,
+} from "fastify";
+import autoload from "@fastify/autoload";
+import swaggerPlugin from "./plugins/swagger.js";
+import cors from "./plugins/cors.js";
+import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import {
+  serializerCompiler,
+  validatorCompiler,
+} from "fastify-type-provider-zod";
+import { fastifySSE } from "@fastify/sse";
+import prismaPlugin from "@/plugins/prisma.js";
+import fastifySensible from "@fastify/sensible";
+import envPlugin from "@plugins/env.js";
+import oauth2Plugin from "@plugins/oauth2.js";
+import josePlugin from "@plugins/jose.js";
+import mqttPlugin from "@/plugins/mqtt/index.js";
+import ngsiLdPlugin from "@/plugins/ngsi-ld/index.js";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
-
+const isDevelopment = process.env.NODE_ENV !== "production";
 
 const app = fastify({
   logger: {
-    name: "app"
-  }
+    name: "app",
+  },
 }).withTypeProvider<ZodTypeProvider>();
 
 app.setValidatorCompiler(validatorCompiler);
@@ -37,8 +45,10 @@ await app.register(fastifySensible);
 await app.register(cors);
 await app.register(oauth2Plugin);
 await app.register(josePlugin);
+await app.register(fastifySSE);
 await app.register(mqttPlugin);
 await app.register(prismaPlugin);
+await app.register(ngsiLdPlugin);
 
 if (isDevelopment) {
   await app.register(swaggerPlugin);
@@ -48,37 +58,34 @@ if (isDevelopment) {
 // Routes
 //**************************************************
 
-app.setErrorHandler((
-  error: FastifyError,
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  request.log.error(error);
+app.setErrorHandler(
+  (error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
+    request.log.error(error);
 
-  if (error.statusCode) {
-    return reply.send(error);
-  }
+    if (error.statusCode) {
+      return reply.send(error);
+    }
 
-  return reply.status(500).send({
-    statusCode: 500,
-    error: "Internal Server Error",
-    message: "Internal server error, contact staf"
-  });
-});
+    return reply.status(500).send({
+      statusCode: 500,
+      error: "Internal Server Error",
+      message: "Internal server error, contact staf",
+    });
+  },
+);
 
 await app.register(autoload, {
-  dir: join(__dirname, 'routes'),
+  dir: join(__dirname, "routes"),
   options: { prefix: "/api" },
-  matchFilter: /.*\.routes\.(ts|js)$/
-})
+  matchFilter: /.*\.routes\.(ts|js)$/,
+});
 
 //**************************************************
 // Start
 //**************************************************
 
 try {
-  await app.listen({ port: 3000, host: '0.0.0.0' })
-
+  await app.listen({ port: 3000, host: "0.0.0.0" });
 } catch (error) {
   app.log.error(error);
   process.exit(1);

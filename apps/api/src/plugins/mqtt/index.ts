@@ -1,7 +1,10 @@
 import fp from "fastify-plugin";
 import { EventEmitter } from "events";
 import mqtt from "mqtt";
-import { createDynamicSecurityAPI, type DynamicSecurityAPI } from "./dynamic-security.js";
+import {
+  createDynamicSecurityAPI,
+  type DynamicSecurityAPI,
+} from "./dynamic-security.js";
 import { createMQTTClient } from "./mqtt.js";
 
 /**
@@ -17,7 +20,7 @@ export type FastifyMQTT = {
  * Extends the core Fastify instance to include the custom `mqtt` decorator.
  * This enables fully typed access via `fastify.mqtt` across all routes and plugins.
  */
-declare module 'fastify' {
+declare module "fastify" {
   interface FastifyInstance {
     mqtt: FastifyMQTT;
   }
@@ -32,14 +35,14 @@ const topics: string[] = [];
 
 /**
  * Fastify plugin that initializes the MQTT ecosystem for the application.
- * 
+ *
  * This plugin performs the following initialization sequence:
  * 1. Establishes a fail-fast connection to the MQTT broker.
  * 2. Sets up an internal event emitter to bridge raw MQTT messages into Node.js events.
  * 3. Subscribes to any defined global topics.
  * 4. Initializes the Mosquitto Dynamic Security API instance.
  * 5. Decorates the Fastify instance with the `mqtt` namespace.
- * 
+ *
  * @param {FastifyInstance} fastify - The encapsulated Fastify instance.
  * @returns {Promise<void>}
  */
@@ -64,13 +67,16 @@ export default fp(async (fastify) => {
         logger.error("Failed to subscribe to global topics");
         return;
       }
-      
+
       logger.info("Successfully subscribed to global topics");
     });
   }
 
   // 4. Initialize the Dynamic Security API, passing the client and the event bridge
-  const dynamicSecurityAPI = await createDynamicSecurityAPI(mqttClient, messageEvents);
+  const dynamicSecurityAPI = await createDynamicSecurityAPI(
+    mqttClient,
+    messageEvents,
+  );
 
   // 5. Decorate the Fastify instance to expose the MQTT ecosystem
   fastify.decorate("mqtt", {
