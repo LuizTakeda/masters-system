@@ -94,8 +94,7 @@ const eventRoutes: FastifyPluginAsyncZod = async (fastify) => {
       request.raw.on("close", () => {
         fastify.ngsiLd.subscription.eventEmitter.off(channel, onUpdate);
         request.log.info(
-          { tenant, channel },
-          "Client disconnected from SSE stream",
+          `Client disconnected from SSE stream (tenant: ${tenant}, channel: ${channel})`,
         );
       });
     },

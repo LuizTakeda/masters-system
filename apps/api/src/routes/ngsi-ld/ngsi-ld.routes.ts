@@ -57,13 +57,9 @@ const ngsiLdRoutes: FastifyPluginAsyncZod = async (fastify) => {
         extractTenantFromSubscriptionId(body?.subscriptionId) ||
         "default";
 
+      const entitiesCount = Array.isArray(body?.data) ? body.data.length : 0;
       request.log.info(
-        {
-          tenant,
-          subscriptionId: body?.subscriptionId,
-          entitiesCount: Array.isArray(body?.data) ? body.data.length : 0,
-        },
-        "Received NGSI-LD notification from Context Broker",
+        `Received NGSI-LD notification for tenant '${tenant}' (${entitiesCount} entities)`,
       );
 
       const emitter = fastify.ngsiLd.subscription.eventEmitter;

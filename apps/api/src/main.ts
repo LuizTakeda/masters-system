@@ -28,6 +28,7 @@ const __dirname = dirname(__filename);
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 const app = fastify({
+  disableRequestLogging: true,
   logger: {
     name: "app",
   },
@@ -35,6 +36,15 @@ const app = fastify({
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
+
+// Log only Method, URL, Status Code and Execution Time on response (single line)
+app.addHook("onResponse", (request, reply, done) => {
+  const responseTime = `${(reply.elapsedTime || 0).toFixed(2)}ms`;
+  request.log.info(
+    `${request.method} ${request.url} ${reply.statusCode} - ${responseTime}`,
+  );
+  done();
+});
 
 //**************************************************
 // Plugins

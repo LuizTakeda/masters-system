@@ -35,59 +35,72 @@ export type IotDeviceStaticAttributeType = z.infer<
   typeof IotDeviceStaticAttributeSchema
 >;
 
-export const IotDeviceCommandSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Command name is required")
-    .describe("Command identifier"),
-  type: z.string().default("command").describe("Must be 'command'"),
-  value: z
-    .string()
-    .optional()
-    .describe("Command representation depending on protocol"),
-});
+export const IotDeviceCommandSchema = z
+  .object({
+    object_id: z.string().optional().describe("Protocol parameter for command"),
+    name: z
+      .string()
+      .min(1, "Command name is required")
+      .describe("Command identifier"),
+    type: z
+      .string()
+      .default("command")
+      .optional()
+      .describe("Must be 'command'"),
+    value: z
+      .string()
+      .optional()
+      .describe("Command representation depending on protocol"),
+  })
+  .passthrough();
 export type IotDeviceCommandType = z.infer<typeof IotDeviceCommandSchema>;
 
-export const IotDeviceSchema = z.object({
-  _id: z.string().optional(),
-  device_id: z
-    .string()
-    .min(1, "device_id is required")
-    .describe("Unique identifier within a service"),
-  service: z.string().optional().describe("Service tenant name"),
-  service_path: z.string().optional().describe("Subservice path"),
-  entity_name: z
-    .string()
-    .optional()
-    .describe("Entity name used for Context Broker publication"),
-  entity_type: z
-    .string()
-    .optional()
-    .describe("Entity type used for Context Broker publication"),
-  transport: z
-    .string()
-    .optional()
-    .describe("Transport protocol (e.g. MQTT or HTTP)"),
-  protocol: z.string().describe("Protocol identifier (e.g. IoTA-JSON)"),
-  apikey: z.string().optional().describe("API key for the service group"),
-  timezone: z.string().optional().describe("Device timezone"),
-  endpoint: z
-    .string()
-    .optional()
-    .describe("Endpoint URL when device uses push commands"),
-  registrationId: z
-    .string()
-    .optional()
-    .describe("Context Source Registration ID in Orion"),
-  creationDate: z.string().optional().describe("Creation timestamp"),
-  internalId: z.string().nullable().optional(),
-  attributes: z.array(IotDeviceAttributeSchema).optional().default([]),
-  static_attributes: z
-    .array(IotDeviceStaticAttributeSchema)
-    .optional()
-    .default([]),
-  commands: z.array(IotDeviceCommandSchema).optional().default([]),
-});
+export const IotDeviceSchema = z
+  .object({
+    _id: z.string().optional(),
+    device_id: z
+      .string()
+      .min(1, "device_id is required")
+      .describe("Unique identifier within a service"),
+    service: z.string().optional().describe("Service tenant name"),
+    service_path: z.string().optional().describe("Subservice path"),
+    entity_name: z
+      .string()
+      .optional()
+      .describe("Entity name used for Context Broker publication"),
+    entity_type: z
+      .string()
+      .optional()
+      .describe("Entity type used for Context Broker publication"),
+    transport: z
+      .string()
+      .optional()
+      .describe("Transport protocol (e.g. MQTT or HTTP)"),
+    protocol: z
+      .string()
+      .optional()
+      .describe("Protocol identifier (e.g. IoTA-JSON)"),
+    apikey: z.string().optional().describe("API key for the service group"),
+    timezone: z.string().optional().describe("Device timezone"),
+    endpoint: z
+      .string()
+      .optional()
+      .describe("Endpoint URL when device uses push commands"),
+    registrationId: z
+      .string()
+      .optional()
+      .describe("Context Source Registration ID in Orion"),
+    creationDate: z.string().optional().describe("Creation timestamp"),
+    internalId: z.string().nullable().optional(),
+    attributes: z.array(IotDeviceAttributeSchema).optional().default([]),
+    lazy: z.array(z.any()).optional().default([]),
+    static_attributes: z
+      .array(IotDeviceStaticAttributeSchema)
+      .optional()
+      .default([]),
+    commands: z.array(IotDeviceCommandSchema).optional().default([]),
+  })
+  .passthrough();
 export type IotDeviceType = z.infer<typeof IotDeviceSchema>;
 
 //##################################################

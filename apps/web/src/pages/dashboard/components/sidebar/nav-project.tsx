@@ -28,7 +28,7 @@ export function NavProject({ project }: Props) {
     },
     {
       title: "Entities",
-      url: `/dashboard/${encodeURIComponent(project)}/entities`,
+      url: `/dashboard/${encodeURIComponent(project)}/entitie`,
       icon: Database,
       end: false,
     },
