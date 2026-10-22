@@ -170,9 +170,6 @@ export function DevicesTable({
                           )}
                         </button>
                       </div>
-                      <span className="text-[10px] text-muted-foreground">
-                        {device.timezone || "America/Sao_Paulo"}
-                      </span>
                     </div>
                   </div>
                 </TableCell>

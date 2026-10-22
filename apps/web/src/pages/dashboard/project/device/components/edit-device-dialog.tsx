@@ -45,7 +45,6 @@ export function EditDeviceDialog({
   const [entityType, setEntityType] = useState("");
   const [transport, setTransport] = useState("");
   const [apikey, setApikey] = useState("");
-  const [timezone, setTimezone] = useState("");
   const [endpoint, setEndpoint] = useState("");
 
   const [attributes, setAttributes] = useState<IotDeviceAttributeType[]>([]);
@@ -66,7 +65,6 @@ export function EditDeviceDialog({
       setEntityType(device.entity_type || "Device");
       setTransport(device.transport || "MQTT");
       setApikey(device.apikey || "");
-      setTimezone(device.timezone || "America/Sao_Paulo");
       setEndpoint(device.endpoint || "");
       setAttributes(
         device.attributes && device.attributes.length > 0
@@ -169,7 +167,6 @@ export function EditDeviceDialog({
       entity_type: entityType.trim() || undefined,
       transport: transport.trim() || undefined,
       apikey: apikey.trim() || undefined,
-      timezone: timezone.trim() || undefined,
       endpoint: endpoint.trim() || undefined,
       attributes: cleanAttributes,
       static_attributes: cleanStaticAttributes,
@@ -324,7 +321,7 @@ export function EditDeviceDialog({
                   </div>
 
                   {/* API Key */}
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 sm:col-span-2">
                     <label
                       htmlFor="edit-apikey"
                       className="text-xs font-medium text-foreground"
@@ -337,23 +334,6 @@ export function EditDeviceDialog({
                       onChange={(e) => setApikey(e.target.value)}
                       placeholder="API Key"
                       className="font-mono text-xs"
-                    />
-                  </div>
-
-                  {/* Timezone */}
-                  <div className="space-y-1.5">
-                    <label
-                      htmlFor="edit-timezone"
-                      className="text-xs font-medium text-foreground"
-                    >
-                      Timezone
-                    </label>
-                    <Input
-                      id="edit-timezone"
-                      value={timezone}
-                      onChange={(e) => setTimezone(e.target.value)}
-                      placeholder="America/Sao_Paulo"
-                      className="text-xs font-mono"
                     />
                   </div>
 
