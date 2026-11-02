@@ -7,11 +7,7 @@ import { cn } from "@/lib/utils";
 export default function AdminHomePage() {
   return (
     <div>
-      <PageHeader
-        items={[
-          { label: "Admin" },
-        ]}
-      />
+      <PageHeader items={[{ label: "Admin" }]} />
 
       <div className="p-6 space-y-6 max-w-7xl">
         <div className="space-y-1">
@@ -22,7 +18,8 @@ export default function AdminHomePage() {
             <Shield className="size-5 text-primary" />
           </div>
           <p className="text-sm text-muted-foreground">
-            Manage global infrastructure, MQTT broker security, and system-wide configurations.
+            Manage global infrastructure, MQTT broker security, and system-wide
+            configurations.
           </p>
         </div>
 
@@ -33,15 +30,21 @@ export default function AdminHomePage() {
               <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Server className="size-5" />
               </div>
-              <h3 className="font-bold text-base text-foreground">MQTT Broker</h3>
+              <h3 className="font-bold text-base text-foreground">
+                MQTT Broker
+              </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Configure Dynamic Security, clients, roles, ACLs, and groups in the Mosquitto Broker.
+                Configure Dynamic Security, clients, roles, ACLs, and groups in
+                the Mosquitto Broker.
               </p>
             </div>
 
             <Link
               to="/dashboard/admin/mqtt-broker"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit gap-1.5")}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "w-fit gap-1.5",
+              )}
             >
               <span>Access MQTT Broker</span>
               <ArrowRight className="size-3.5" />
@@ -53,15 +56,21 @@ export default function AdminHomePage() {
               <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <FileCode2 className="size-5" />
               </div>
-              <h3 className="font-bold text-base text-foreground">Context File</h3>
+              <h3 className="font-bold text-base text-foreground">
+                Context File
+              </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Manage global JSON-LD @context schemas, ontologies, and FIWARE Orion-LD entity mappings.
+                Manage global JSON-LD @context schemas, ontologies, and FIWARE
+                Orion-LD entity mappings.
               </p>
             </div>
 
             <Link
               to="/dashboard/admin/context-file"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit gap-1.5")}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "w-fit gap-1.5",
+              )}
             >
               <span>Access Context File</span>
               <ArrowRight className="size-3.5" />

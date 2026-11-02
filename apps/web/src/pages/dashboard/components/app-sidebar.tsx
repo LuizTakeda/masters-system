@@ -28,7 +28,7 @@ export function AppSidebar() {
       contexts.push("system-admin");
     }
 
-    const projects = user.groups.filter((str) => str.startsWith("project-"));
+    const projects = user.groups;
     contexts.push(...projects);
 
     return contexts;

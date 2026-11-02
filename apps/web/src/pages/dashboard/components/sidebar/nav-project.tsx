@@ -1,5 +1,5 @@
 import { NavLink } from "react-router";
-import { Cpu, Database, FileCode2, Home } from "lucide-react";
+import { Cpu, Database, Home } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -28,16 +28,16 @@ export function NavProject({ project }: Props) {
     },
     {
       title: "Entities",
-      url: `/dashboard/${encodeURIComponent(project)}/entities`,
+      url: `/dashboard/${encodeURIComponent(project)}/entitie`,
       icon: Database,
       end: false,
     },
-    {
-      title: "Context File",
-      url: `/dashboard/${encodeURIComponent(project)}/context-file`,
-      icon: FileCode2,
-      end: false,
-    },
+    // {
+    //   title: "Context File",
+    //   url: `/dashboard/${encodeURIComponent(project)}/context-file`,
+    //   icon: FileCode2,
+    //   end: false,
+    // },
   ];
 
   return (

@@ -34,7 +34,7 @@ export interface KeycloakUserPayload extends JWTPayload {
   realm_access?: {
     roles: string[];
   };
-  groups: string[];
+  groups?: string[];
 }
 
 export default fp(async (fastify: FastifyInstance) => {

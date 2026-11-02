@@ -15,6 +15,9 @@ services:
       - ./volumes/nginx/certs:/etc/nginx/certs:ro
     depends_on:
       - keycloak
+      - orion-ld
+      - mintaka
+      - json-iot-agent
     networks:
       default:
         aliases:
@@ -55,13 +58,52 @@ services:
     image: fiware/orion-ld:1.12.0
     hostname: orion-ld
     environment:
-      - ORIONLD_TROE=FALSE
       - ORIONLD_MONGO_HOST=mongo-db
       - ORIONLD_MULTI_SERVICE=TRUE
-    command: -logLevel DEBUG
+      - ORIONLD_TROE=TRUE
+      - ORIONLD_TROE_HOST=timescale-db
+      - ORIONLD_TROE_PORT=5432
+      - ORIONLD_TROE_USER=orion
+      - ORIONLD_TROE_PWD=123
+    command: -troePoolSize 20 -logLevel DEBUG -logForHumans
     depends_on:
       mongo-db:
         condition: service_healthy
+      timescale-db:
+        condition: service_healthy
+
+  mintaka:
+    image: fiware/mintaka:0.6.18
+    hostname: mintaka
+    expose:
+      - "8080"
+    environment:
+      - DATASOURCES_DEFAULT_HOST=timescale-db
+      - DATASOURCES_DEFAULT_PORT=5432
+      - DATASOURCES_DEFAULT_USERNAME=orion
+      - DATASOURCES_DEFAULT_PASSWORD=123
+      - DATASOURCES_DEFAULT_DATABASE=orion
+      - DATASOURCES_DEFAULT_MAXIMUM_POOL_SIZE=10
+    depends_on:
+      timescale-db:
+        condition: service_healthy
+
+  timescale-db:
+    image: timescale/timescaledb-ha:pg17
+    hostname: timescale-db
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_DB=orion
+      - POSTGRES_USER=orion
+      - POSTGRES_PASSWORD=123
+    volumes:
+      - timescale_data:/home/postgres/pgdata/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orion -d orion"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   # ===================================================================
   # System
@@ -163,3 +205,4 @@ volumes:
   pgadmin_data:
   keycloak_data:
   mosquitto_data:
+  timescale_data:

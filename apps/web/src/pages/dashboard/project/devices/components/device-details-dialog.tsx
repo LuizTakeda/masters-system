@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import {
   Dialog,
   DialogContent,
@@ -6,13 +7,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Check,
   Code2,
   Copy,
   Cpu,
   FileCode,
+  LineChart,
   Radio,
   Terminal,
   Layers,
@@ -24,6 +27,7 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultApiKey?: string;
+  deviceHref?: string;
 };
 
 export function DeviceDetailsDialog({
@@ -31,6 +35,7 @@ export function DeviceDetailsDialog({
   open,
   onOpenChange,
   defaultApiKey = "",
+  deviceHref,
 }: Props) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
@@ -474,7 +479,22 @@ export function DeviceDetailsDialog({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t bg-muted/10 flex justify-end">
+        <div className="p-4 border-t bg-muted/10 flex items-center justify-between gap-2">
+          {deviceHref ? (
+            <Link
+              to={deviceHref}
+              onClick={() => onOpenChange(false)}
+              className={cn(
+                buttonVariants({ variant: "default", size: "sm" }),
+                "gap-1.5 text-xs",
+              )}
+            >
+              <LineChart className="size-3.5" />
+              <span>Open Telemetry & Temporal Charts</span>
+            </Link>
+          ) : (
+            <div />
+          )}
           <Button
             variant="outline"
             size="sm"

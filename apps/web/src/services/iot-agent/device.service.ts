@@ -56,6 +56,7 @@ async function handleResponse<T>(
   if (validate && data) {
     const validation = validate(data);
     if (!validation.success) {
+      console.error("IoT Agent Contract Error:", validation);
       throw {
         statusCode: 500,
         error: "Contract Error",
