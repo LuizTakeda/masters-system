@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import {
   Table,
   TableBody,
@@ -7,14 +8,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import {
   Check,
   Copy,
   Cpu,
+  ExternalLink,
   Info,
   Layers,
+  LineChart,
   Pencil,
   Plus,
   Radio,
@@ -26,6 +30,7 @@ type Props = {
   devices?: IotDeviceType[];
   isLoading: boolean;
   isError: unknown;
+  getDeviceHref: (device: IotDeviceType) => string;
   onSelectDevice: (device: IotDeviceType) => void;
   onEditDevice: (device: IotDeviceType) => void;
   onDeleteDevice: (device: IotDeviceType) => void;
@@ -36,6 +41,7 @@ export function DevicesTable({
   devices,
   isLoading,
   isError,
+  getDeviceHref,
   onSelectDevice,
   onEditDevice,
   onDeleteDevice,
@@ -156,7 +162,14 @@ export function DevicesTable({
                     </div>
                     <div className="flex flex-col">
                       <div className="flex items-center gap-1.5 font-mono text-xs font-semibold text-foreground">
-                        <span>{device.device_id}</span>
+                        <Link
+                          to={getDeviceHref(device)}
+                          className="inline-flex items-center gap-1 text-primary hover:underline transition-colors"
+                          title="Open device page & temporal charts"
+                        >
+                          <span>{device.device_id}</span>
+                          <ExternalLink className="size-3 shrink-0 opacity-75" />
+                        </Link>
                         <button
                           type="button"
                           onClick={() => handleCopy(device.device_id)}
@@ -248,6 +261,17 @@ export function DevicesTable({
                 {/* Actions */}
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
+                    <Link
+                      to={getDeviceHref(device)}
+                      className={cn(
+                        buttonVariants({ variant: "outline", size: "xs" }),
+                        "gap-1 text-xs text-primary border-primary/20 hover:bg-primary/10",
+                      )}
+                      title="Open Device Telemetry & Temporal Charts"
+                    >
+                      <LineChart className="size-3.5" />
+                      <span>Telemetry</span>
+                    </Link>
                     <Button
                       variant="ghost"
                       size="icon-xs"

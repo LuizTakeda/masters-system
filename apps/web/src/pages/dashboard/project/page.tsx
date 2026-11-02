@@ -75,7 +75,7 @@ export default function ProjectHomePage() {
             </div>
 
             <Link
-              to={`/dashboard/${encodeURIComponent(project)}/entities`}
+              to={`/dashboard/${encodeURIComponent(project)}/entitie`}
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "w-fit gap-1.5",
@@ -86,7 +86,7 @@ export default function ProjectHomePage() {
             </Link>
           </div>
 
-          <div className="flex flex-col justify-between p-5 rounded-xl border bg-card text-card-foreground shadow-2xs space-y-4">
+          {/* <div className="flex flex-col justify-between p-5 rounded-xl border bg-card text-card-foreground shadow-2xs space-y-4">
             <div className="space-y-2">
               <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <FileCode2 className="size-5" />
@@ -110,7 +110,7 @@ export default function ProjectHomePage() {
               <span>View Context File</span>
               <ArrowRight className="size-3.5" />
             </Link>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

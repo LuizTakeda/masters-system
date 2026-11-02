@@ -4,8 +4,17 @@ import { useServices } from "@/hooks/iot-agent/use-service";
 import { useMe } from "@/hooks/use-me";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Building2, Filter, FolderTree, Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { formatProjectString } from "@/lib/utils";
+import { Building2, Check, ChevronsUpDown, Plus } from "lucide-react";
 import type {
   CreateServiceItemType,
   IotServiceGroupType,
@@ -20,25 +29,23 @@ import { DeleteServiceDialog } from "./components/delete-service-dialog";
 const PAGE_SIZE = 10;
 
 export default function ServicesPage() {
-  const { user } = useMe();
+  const { user, isLoading: isUserLoading } = useMe();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Extract available projects/tenants from user groups
+  // Extract available projects/tenants from user.groups
   const availableProjects = useMemo(() => {
-    if (!user) return ["project-greenhouse"];
-    const projects = user.groups.filter((g) => g.startsWith("project-"));
-    return projects.length > 0 ? projects : ["project-greenhouse"];
+    return user?.groups ?? [];
   }, [user]);
 
-  // Tenant / Subservice state
-  const [tenantInput, setTenantInput] = useState(
-    () => availableProjects[0] || "project-greenhouse",
-  );
-  const [servicePathInput, setServicePathInput] = useState("/");
-  const [activeTenant, setActiveTenant] = useState(
-    () => availableProjects[0] || "project-greenhouse",
-  );
-  const [activeServicePath, setActiveServicePath] = useState("/");
+  // Selected project/tenant state
+  const [selectedTenant, setSelectedTenant] = useState<string>("");
+
+  const activeTenant = useMemo(() => {
+    if (selectedTenant && availableProjects.includes(selectedTenant)) {
+      return selectedTenant;
+    }
+    return availableProjects[0] ?? "";
+  }, [selectedTenant, availableProjects]);
 
   // Dialog states
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -63,7 +70,7 @@ export default function ServicesPage() {
     activeTenant
       ? {
           service: activeTenant,
-          servicePath: activeServicePath,
+          servicePath: "/",
         }
       : null,
     {
@@ -82,10 +89,8 @@ export default function ServicesPage() {
     });
   };
 
-  const handleApplyFilter = (e: React.FormEvent) => {
-    e.preventDefault();
-    setActiveTenant(tenantInput.trim());
-    setActiveServicePath(servicePathInput.trim() || "/");
+  const handleSelectTenant = (tenant: string) => {
+    setSelectedTenant(tenant);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set("page", "1");
@@ -152,6 +157,7 @@ export default function ServicesPage() {
         <Button
           onClick={() => setIsCreateOpen(true)}
           size="sm"
+          disabled={!activeTenant}
           className="gap-1.5 self-start sm:self-auto"
         >
           <Plus className="size-4" />
@@ -159,67 +165,75 @@ export default function ServicesPage() {
         </Button>
       </div>
 
-      {/* Tenant / Subservice Selector Filter Bar */}
+      {/* Project / Tenant Selector Bar */}
       <div className="rounded-lg border bg-card p-3 shadow-xs">
-        <form
-          onSubmit={handleApplyFilter}
-          className="flex flex-wrap items-center gap-3"
-        >
-          <div className="flex items-center gap-1.5 min-w-[240px] flex-1">
-            <Building2 className="size-4 text-muted-foreground shrink-0" />
-            <div className="flex-1">
-              <label htmlFor="tenant-input" className="sr-only">
-                Tenant (Fiware-Service)
-              </label>
-              <Input
-                id="tenant-input"
-                value={tenantInput}
-                onChange={(e) => setTenantInput(e.target.value)}
-                placeholder="Tenant (e.g. project-greenhouse)"
-                className="h-8 text-xs font-mono"
-                required
-              />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <Building2 className="size-4 shrink-0 text-primary" />
+              <span>Project (Tenant):</span>
             </div>
-          </div>
 
-          <div className="flex items-center gap-1.5 min-w-[180px]">
-            <FolderTree className="size-4 text-muted-foreground shrink-0" />
-            <div className="flex-1">
-              <label htmlFor="subservice-input" className="sr-only">
-                Subservice (Fiware-ServicePath)
-              </label>
-              <Input
-                id="subservice-input"
-                value={servicePathInput}
-                onChange={(e) => setServicePathInput(e.target.value)}
-                placeholder="Path (e.g. / or /*)"
-                className="h-8 text-xs font-mono"
-              />
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isUserLoading || availableProjects.length === 0}
+                    className="h-8 min-w-[200px] justify-between gap-2 text-xs font-mono"
+                  />
+                }
+              >
+                <span className="truncate">
+                  {isUserLoading
+                    ? "Loading projects..."
+                    : activeTenant || "No projects available"}
+                </span>
+                <ChevronsUpDown className="size-3.5 text-muted-foreground shrink-0" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-[220px]">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">
+                    Select Project Tenant
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {availableProjects.map((proj) => {
+                    const isSelected = proj === activeTenant;
+                    return (
+                      <DropdownMenuItem
+                        key={proj}
+                        onClick={() => handleSelectTenant(proj)}
+                        className="flex items-center justify-between gap-2 text-xs cursor-pointer"
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium capitalize">
+                            {formatProjectString(proj)}
+                          </span>
+                          <span className="text-[10px] font-mono text-muted-foreground">
+                            {proj}
+                          </span>
+                        </div>
+                        {isSelected && (
+                          <Check className="size-3.5 text-primary shrink-0" />
+                        )}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-
-          <Button
-            type="submit"
-            variant="secondary"
-            size="sm"
-            className="h-8 gap-1.5 text-xs"
-          >
-            <Filter className="size-3.5" />
-            <span>Apply</span>
-          </Button>
 
           {availableProjects.length > 1 && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground overflow-x-auto">
-              <span>Quick switch:</span>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground overflow-x-auto">
+              <span className="shrink-0">Projects:</span>
               {availableProjects.map((proj) => (
                 <button
                   key={proj}
                   type="button"
-                  onClick={() => {
-                    setTenantInput(proj);
-                    setActiveTenant(proj);
-                  }}
-                  className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
+                  onClick={() => handleSelectTenant(proj)}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-mono transition-colors cursor-pointer ${
                     activeTenant === proj
                       ? "bg-primary text-primary-foreground font-semibold"
                       : "bg-muted hover:bg-muted/80 text-foreground"
@@ -230,14 +244,14 @@ export default function ServicesPage() {
               ))}
             </div>
           )}
-        </form>
+        </div>
       </div>
 
       {/* Main Table Card */}
       <div className="rounded-lg border bg-card text-card-foreground shadow-xs overflow-hidden">
         <ServicesTable
           services={services}
-          isLoading={isLoading}
+          isLoading={isLoading || isUserLoading}
           isError={isError}
           onSelectService={handleOpenDetails}
           onDeleteService={handleOpenDelete}
@@ -247,7 +261,7 @@ export default function ServicesPage() {
           page={page}
           totalPages={totalPages}
           totalCount={totalCount}
-          isLoading={isLoading}
+          isLoading={isLoading || isUserLoading}
           onPageChange={handlePageChange}
           resourceName={{ singular: "service group", plural: "service groups" }}
         />
@@ -259,7 +273,6 @@ export default function ServicesPage() {
         onOpenChange={setIsCreateOpen}
         onConfirm={handleCreateConfirm}
         tenant={activeTenant}
-        servicePath={activeServicePath}
       />
 
       <ServiceDetailsDialog

@@ -1,5 +1,11 @@
 import { useNavigate } from "react-router";
-import { ChevronsUpDown, Check, FolderGit2, LayoutDashboard, Shield } from "lucide-react";
+import {
+  ChevronsUpDown,
+  Check,
+  FolderGit2,
+  LayoutDashboard,
+  Shield,
+} from "lucide-react";
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -15,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatProjectString } from "@/lib/utils";
 
 type Props = {
   currentContext: string | null;
@@ -28,10 +35,8 @@ function formatContextLabel(context: string | null) {
   if (context === "system-admin") {
     return "System Admin";
   }
-  if (context.startsWith("project-")) {
-    return `Project: ${context.replace(/^project-/, "")}`;
-  }
-  return context;
+
+  return formatProjectString(context);
 }
 
 export function ContextSwitcher({ contexts, currentContext }: Props) {
@@ -74,7 +79,9 @@ export function ContextSwitcher({ contexts, currentContext }: Props) {
               )}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-              <span className="truncate text-xs text-muted-foreground font-medium">Workspace</span>
+              <span className="truncate text-xs text-muted-foreground font-medium">
+                Workspace
+              </span>
               <span className="truncate font-semibold text-foreground capitalize">
                 {formatContextLabel(currentContext)}
               </span>
@@ -100,9 +107,13 @@ export function ContextSwitcher({ contexts, currentContext }: Props) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">Overview</span>
-                  <span className="truncate text-[10px] text-muted-foreground">Dashboard home</span>
+                  <span className="truncate text-[10px] text-muted-foreground">
+                    Dashboard home
+                  </span>
                 </div>
-                {isNoContext && <Check className="size-4 text-primary ml-auto" />}
+                {isNoContext && (
+                  <Check className="size-4 text-primary ml-auto" />
+                )}
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
@@ -131,10 +142,16 @@ export function ContextSwitcher({ contexts, currentContext }: Props) {
                           )}
                         </div>
                         <div className="grid flex-1 text-left text-sm leading-tight">
-                          <span className="truncate font-medium capitalize">{formatContextLabel(ctx)}</span>
-                          <span className="truncate text-[10px] text-muted-foreground">{ctx}</span>
+                          <span className="truncate font-medium capitalize">
+                            {formatContextLabel(ctx)}
+                          </span>
+                          <span className="truncate text-[10px] text-muted-foreground">
+                            {ctx}
+                          </span>
                         </div>
-                        {isSelected && <Check className="size-4 text-primary ml-auto" />}
+                        {isSelected && (
+                          <Check className="size-4 text-primary ml-auto" />
+                        )}
                       </DropdownMenuItem>
                     );
                   })}

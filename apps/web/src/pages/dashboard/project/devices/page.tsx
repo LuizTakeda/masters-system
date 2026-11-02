@@ -110,7 +110,14 @@ export default function ProjectDevicePage() {
     );
   }, [devices, searchQuery]);
 
-  // Dialog Open Handlers
+  // Navigation & Dialog Open Handlers
+  const getDeviceHref = (device: IotDeviceType) => {
+    const entityUrn =
+      device.entity_name ||
+      `urn:ngsi-ld:${device.entity_type || "Device"}:${device.device_id}`;
+    return `/dashboard/${encodeURIComponent(project ?? "")}/entitie/${encodeURIComponent(entityUrn)}`;
+  };
+
   const handleOpenDetails = (device: IotDeviceType) => {
     setSelectedDevice(device);
     setIsDetailsOpen(true);
@@ -269,6 +276,7 @@ export default function ProjectDevicePage() {
             devices={filteredDevices}
             isLoading={isLoading}
             isError={isError}
+            getDeviceHref={getDeviceHref}
             onSelectDevice={handleOpenDetails}
             onEditDevice={handleOpenEdit}
             onDeleteDevice={handleOpenDelete}
@@ -306,6 +314,9 @@ export default function ProjectDevicePage() {
           open={isDetailsOpen}
           onOpenChange={setIsDetailsOpen}
           defaultApiKey={defaultApiKey}
+          deviceHref={
+            selectedDevice ? getDeviceHref(selectedDevice) : undefined
+          }
         />
 
         <DeleteDeviceDialog

@@ -144,7 +144,10 @@ export default function EntitiesPage() {
     });
   }, [entities, searchQuery]);
 
-  // Dialog handlers
+  // Navigation & Dialog handlers
+  const getEntityHref = (entity: NgsiLdEntityType) =>
+    `/dashboard/${encodeURIComponent(project ?? "")}/entitie/${encodeURIComponent(entity.id)}`;
+
   const handleOpenDetails = (entity: NgsiLdEntityType) => {
     setSelectedEntity(entity);
     setIsDetailsOpen(true);
@@ -211,7 +214,7 @@ export default function EntitiesPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-lg font-bold tracking-tight text-foreground">
-                  NGSI-LD Entities
+                  Entities
                 </h3>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
                   <span className="size-1.5 rounded-full bg-primary" />
@@ -419,6 +422,7 @@ export default function EntitiesPage() {
               <EntityCard
                 key={entity.id}
                 entity={entity}
+                entityHref={getEntityHref(entity)}
                 onSelect={handleOpenDetails}
                 onDelete={handleOpenDelete}
               />
@@ -441,6 +445,9 @@ export default function EntitiesPage() {
           entity={selectedEntity}
           open={isDetailsOpen}
           onOpenChange={setIsDetailsOpen}
+          entityHref={
+            selectedEntity ? getEntityHref(selectedEntity) : undefined
+          }
         />
 
         <DeleteEntityDialog

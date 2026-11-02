@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router";
 import {
   Dialog,
   DialogContent,
@@ -6,7 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Check,
   Code2,
@@ -14,6 +16,7 @@ import {
   Database,
   FileCode,
   Layers,
+  LineChart,
   Link2,
   MapPin,
   Tag,
@@ -25,9 +28,15 @@ type Props = {
   entity: NgsiLdEntityType | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  entityHref?: string;
 };
 
-export function EntityDetailsDialog({ entity, open, onOpenChange }: Props) {
+export function EntityDetailsDialog({
+  entity,
+  open,
+  onOpenChange,
+  entityHref,
+}: Props) {
   const [activeTab, setActiveTab] = useState<"attributes" | "raw" | "context">(
     "attributes",
   );
@@ -310,6 +319,32 @@ export function EntityDetailsDialog({ entity, open, onOpenChange }: Props) {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t bg-muted/10 flex items-center justify-between gap-2">
+          {entityHref ? (
+            <Link
+              to={entityHref}
+              onClick={() => onOpenChange(false)}
+              className={cn(
+                buttonVariants({ variant: "default", size: "sm" }),
+                "gap-1.5 text-xs",
+              )}
+            >
+              <LineChart className="size-3.5" />
+              <span>Open Temporal Charts</span>
+            </Link>
+          ) : (
+            <div />
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+          >
+            Close
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router";
 import type { NgsiLdEntityType } from "@repo/types/endpoints/ngsi-ld/entities.endpoints";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Activity,
   Check,
@@ -8,6 +10,7 @@ import {
   Copy,
   ExternalLink,
   Eye,
+  LineChart,
   Link2,
   MapPin,
   Trash2,
@@ -16,6 +19,7 @@ import {
 
 type Props = {
   entity: NgsiLdEntityType;
+  entityHref: string;
   onSelect: (entity: NgsiLdEntityType) => void;
   onDelete: (entity: NgsiLdEntityType) => void;
 };
@@ -175,7 +179,12 @@ function formatRelativeTime(dateStr?: string): string {
   }
 }
 
-export function EntityCard({ entity, onSelect, onDelete }: Props) {
+export function EntityCard({
+  entity,
+  entityHref,
+  onSelect,
+  onDelete,
+}: Props) {
   const [isCopied, setIsCopied] = useState(false);
 
   const attributes = useMemo(() => parseEntityAttributes(entity), [entity]);
@@ -233,6 +242,18 @@ export function EntityCard({ entity, onSelect, onDelete }: Props) {
 
           {/* Action buttons */}
           <div className="flex items-center gap-1">
+            <Link
+              to={entityHref}
+              onClick={(e) => e.stopPropagation()}
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "icon-xs" }),
+                "text-muted-foreground hover:text-primary",
+              )}
+              title="Open entity telemetry & temporal charts"
+            >
+              <LineChart className="size-3.5" />
+              <span className="sr-only">Temporal Charts</span>
+            </Link>
             <Button
               variant="ghost"
               size="icon-xs"
@@ -264,12 +285,15 @@ export function EntityCard({ entity, onSelect, onDelete }: Props) {
 
         {/* Entity ID with Copy */}
         <div className="flex items-center justify-between gap-1.5">
-          <span
-            className="font-mono text-xs font-semibold text-foreground truncate"
+          <Link
+            to={entityHref}
+            onClick={(e) => e.stopPropagation()}
+            className="font-mono text-xs font-semibold text-foreground hover:text-primary hover:underline truncate inline-flex items-center gap-1"
             title={entity.id}
           >
-            {shortId}
-          </span>
+            <span className="truncate">{shortId}</span>
+            <ExternalLink className="size-3 shrink-0 opacity-70" />
+          </Link>
           <Button
             variant="ghost"
             size="icon-xs"
@@ -396,6 +420,15 @@ export function EntityCard({ entity, onSelect, onDelete }: Props) {
               : "No timestamp"}
           </span>
         </div>
+
+        <Link
+          to={entityHref}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 font-semibold text-primary hover:underline shrink-0"
+        >
+          <LineChart className="size-3" />
+          <span>Temporal Charts</span>
+        </Link>
       </div>
     </div>
   );

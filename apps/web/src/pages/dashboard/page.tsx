@@ -4,13 +4,7 @@ import { useMe } from "@/hooks/use-me";
 import PageHeader from "./components/page-header";
 import { ArrowUpRight, FolderGit2, Shield } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-
-function formatProjectName(context: string) {
-  if (context === "system-admin") {
-    return "System Admin";
-  }
-  return context.replace(/^project-/, "");
-}
+import { formatProjectString } from "@/lib/utils";
 
 export default function DashboardHomePage() {
   const { user, isLoading } = useMe();
@@ -36,27 +30,22 @@ export default function DashboardHomePage() {
       });
     }
 
-    const projects = user.groups.filter((str) => str.startsWith("project-"));
-    for (const project of projects) {
-      list.push({
+    list.push(
+      ...user.groups.map((project) => ({
         id: project,
-        label: formatProjectName(project),
+        label: formatProjectString(project),
         subLabel: project,
         to: `/dashboard/${encodeURIComponent(project)}`,
         isAdmin: false,
-      });
-    }
+      })),
+    );
 
     return list;
   }, [user]);
 
   return (
     <div>
-      <PageHeader
-        items={[
-          { label: "Dashboard" },
-        ]}
-      />
+      <PageHeader items={[{ label: "Dashboard" }]} />
 
       <div className="p-6 space-y-6 max-w-7xl">
         {/* Welcome Banner */}
@@ -88,9 +77,12 @@ export default function DashboardHomePage() {
           ) : contexts.length === 0 ? (
             <div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground bg-card">
               <FolderGit2 className="size-8 mx-auto mb-2 opacity-50" />
-              <h4 className="text-sm font-semibold text-foreground">No accessible contexts</h4>
+              <h4 className="text-sm font-semibold text-foreground">
+                No accessible contexts
+              </h4>
               <p className="text-xs text-muted-foreground mt-1">
-                You do not belong to any project groups or administration roles yet.
+                You do not belong to any project groups or administration roles
+                yet.
               </p>
             </div>
           ) : (
@@ -103,10 +95,11 @@ export default function DashboardHomePage() {
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div
-                      className={`flex size-10 items-center justify-center rounded-lg shadow-2xs transition-colors ${ctx.isAdmin
+                      className={`flex size-10 items-center justify-center rounded-lg shadow-2xs transition-colors ${
+                        ctx.isAdmin
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-foreground group-hover:bg-primary/10 group-hover:text-primary"
-                        }`}
+                      }`}
                     >
                       {ctx.isAdmin ? (
                         <Shield className="size-5" />
